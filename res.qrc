@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>images/ecust.png</file>
+        <file>images/app.ico</file>
+    </qresource>
+</RCC>

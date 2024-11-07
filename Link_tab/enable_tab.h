@@ -1,0 +1,47 @@
+﻿#pragma once
+
+#include <QMainWindow>
+#include "link_board.h"
+
+
+#define TPG_MODULE_EN             (1<<0)
+#define DPC_MODULE_EN             (1<<1)
+#define BLC_MODULE_EN             (1<<2)
+#define LSC_MODULE_EN             (1<<3)
+#define NR_RAW_MODULE_EN          (1<<4)
+#define AWB_MODULE_EN             (1<<5)
+#define WBC_MODULE_EN             (1<<6)
+#define STA_MODULE_EN             (1<<7)
+#define GB_MODULE_EN              (1<<8)
+#define DMS_MODULE_EN             (1<<9)
+#define CCM_MODULE_EN             (1<<10)
+#define GAMMA_MODULE_EN           (1<<11)
+#define CSC_MODULE_EN             (1<<12)
+#define NR_YUV_MODULE_EN          (1<<13)
+
+
+class link_board;
+
+namespace Ui {
+    class ENABLE_tab;
+}
+
+
+class ENABLE_tab : public QMainWindow
+{
+    Q_OBJECT
+
+private slots:
+    void on_cfg_btn_clicked();
+
+public:
+    explicit ENABLE_tab(QWidget *parent = 0);
+    ~ENABLE_tab();
+
+private:
+    Ui::ENABLE_tab *ui;
+    link_board* link_tab;
+    quint32  BaseAddr;       ///4字节及基地址
+    quint16  OffsetAddr;     ///2字节偏移地址
+    qint32   enable_value;        ///4字节有符号值
+};
