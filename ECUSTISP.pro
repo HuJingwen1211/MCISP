@@ -36,6 +36,7 @@ SOURCES += \
     Link_tab/ccm_tab.cpp \
     Link_tab/crop_tab.cpp \
     Link_tab/csc_tab.cpp \
+    Link_tab/debug.cpp \
     Link_tab/dms_tab.cpp \
     Link_tab/ee_tab.cpp \
     Link_tab/enable_tab.cpp \
@@ -75,6 +76,7 @@ HEADERS += \
     Link_tab/ccm_tab.h \
     Link_tab/crop_tab.h \
     Link_tab/csc_tab.h \
+    Link_tab/debug.h \
     Link_tab/dms_tab.h \
     Link_tab/ee_tab.h \
     Link_tab/enable_tab.h \
@@ -113,6 +115,7 @@ FORMS += \
     Link_tab/ccm_tab.ui \
     Link_tab/crop_tab.ui \
     Link_tab/csc_tab.ui \
+    Link_tab/debug.ui \
     Link_tab/dms_tab.ui \
     Link_tab/ee_tab.ui \
     Link_tab/enable_tab.ui \

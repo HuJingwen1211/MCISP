@@ -50,12 +50,11 @@ void link_board::Read_Data()
         QString receivedString = QString::fromUtf8(receivedData);    ////接收来自串口的数据
         set_echo_text(receivedString);
     }
-    receivedData.clear();
 }
 
 int link_board::Write_Data(QByteArray transdata)
 {
-    if(!serial->isOpen()){     /////判断当前串口是否打开
+    if(!serial || !serial->isOpen()){     /////判断当前串口是否打开
         set_echo_text("Serial port dose not open, please check and retry!");
         return -1;
     }
@@ -69,6 +68,13 @@ int link_board::Write_Data(QByteArray transdata)
         set_echo_text(tr("Data sent successfully !"));
     }
     return 0;
+}
+
+//发送字节
+void link_board::SendByte(char transdata){
+    if (serial->isOpen()) {
+        serial->putChar(transdata);
+    }
 }
 
 ///清空echo Text
@@ -106,6 +112,7 @@ void link_board::on_link_btn_clicked()
 
        ////设置串口接收数据ready
        QObject::connect(serial, &QSerialPort::readyRead, this, &link_board::Read_Data);  ////连接接收信号槽函数
+       this->SendByte(CONNECT_CODE);   //发送连接代码
    }else{
        //关闭串口
        serial->clear();
@@ -175,6 +182,9 @@ void link_board::on_module_list_itemDoubleClicked(QTreeWidgetItem *item, int col
     }
     else if (item->text(column) == "YFC") {
         YFC_DoubleClicked();
+    }
+    else if(item->text(column) == "Debug"){
+        Debug_DoubleClicked();
     }
 }
 
@@ -428,6 +438,7 @@ void link_board::TM_DoubleClicked()
         tab->setAttribute(Qt::WA_DeleteOnClose);
         int cur = ui->link_tab->addTab(tab, QString::asprintf(" TM "));
         ui->link_tab->setCurrentIndex(cur);
+        ui->link_tab->setVisible(true);
     }
 }
 ///GAMMA
@@ -447,6 +458,7 @@ void link_board::GAMMA_DoubleClicked()
         tab->setAttribute(Qt::WA_DeleteOnClose);
         int cur = ui->link_tab->addTab(tab, QString::asprintf(" GAMMA "));
         ui->link_tab->setCurrentIndex(cur);
+        ui->link_tab->setVisible(true);
     }
 }
 ///CSC
@@ -466,6 +478,7 @@ void link_board::CSC_DoubleClicked()
         tab->setAttribute(Qt::WA_DeleteOnClose);
         int cur = ui->link_tab->addTab(tab, QString::asprintf(" CSC "));
         ui->link_tab->setCurrentIndex(cur);
+        ui->link_tab->setVisible(true);
     }
 }
 ///NR_YUV
@@ -485,9 +498,10 @@ void link_board::NR_YUV_DoubleClicked()
         tab->setAttribute(Qt::WA_DeleteOnClose);
         int cur = ui->link_tab->addTab(tab, QString::asprintf(" NR_YUV "));
         ui->link_tab->setCurrentIndex(cur);
+        ui->link_tab->setVisible(true);
     }
 }
-
+//SCALE
 void link_board::SCALE_DoubleClicked()
 {
     bool is_exist = 0;
@@ -504,9 +518,11 @@ void link_board::SCALE_DoubleClicked()
         tab->setAttribute(Qt::WA_DeleteOnClose);
         int cur = ui->link_tab->addTab(tab, QString::asprintf(" SCALE "));
         ui->link_tab->setCurrentIndex(cur);
+        ui->link_tab->setVisible(true);
     }
 }
 
+//CROP
 void link_board::CROP_DoubleClicked()
 {
     bool is_exist = 0;
@@ -523,9 +539,11 @@ void link_board::CROP_DoubleClicked()
         tab->setAttribute(Qt::WA_DeleteOnClose);
         int cur = ui->link_tab->addTab(tab, QString::asprintf(" CROP "));
         ui->link_tab->setCurrentIndex(cur);
+        ui->link_tab->setVisible(true);
     }
 }
 
+//YFC
 void link_board::YFC_DoubleClicked()
 {
     bool is_exist = 0;
@@ -542,6 +560,29 @@ void link_board::YFC_DoubleClicked()
         tab->setAttribute(Qt::WA_DeleteOnClose);
         int cur = ui->link_tab->addTab(tab, QString::asprintf(" YFC "));
         ui->link_tab->setCurrentIndex(cur);
+        ui->link_tab->setVisible(true);
+    }
+}
+
+
+//DEBUG
+void link_board::Debug_DoubleClicked()
+{
+    bool is_exist = 0;
+    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
+        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
+        if (Debug* tab = dynamic_cast<Debug*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
+            ui->link_tab->setCurrentIndex(i);            /////如果之前创建了就定位到之前的tab
+            is_exist = 1;
+            break;
+        }
+    }
+    if (!is_exist) {
+        Debug* tab = new Debug(this);
+        tab->setAttribute(Qt::WA_DeleteOnClose);
+        int cur = ui->link_tab->addTab(tab, QString::asprintf(" Debug "));
+        ui->link_tab->setCurrentIndex(cur);
+        ui->link_tab->setVisible(true);
     }
 }
 

@@ -257,6 +257,17 @@
       </column>
       <item>
        <property name="text">
+        <string>Debug</string>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+      </item>
+      <item>
+       <property name="text">
         <string>ENABLE</string>
        </property>
        <property name="font">

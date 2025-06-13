@@ -23,10 +23,36 @@
 #include "Link_tab/scale_tab.h"
 #include "Link_tab/crop_tab.h"
 #include "Link_tab/yfc_tab.h"
+#include "Link_tab/debug.h"
+
+
+#define CONNECT_CODE 0x5A
+
+
+
+
+
+
+
+
+
+
 
 namespace Ui {
 class link_board;
 }
+
+typedef struct {
+    uint8_t  MENU_FLAG;
+    uint8_t Value;
+}Debug_Menu_Config;
+
+typedef enum {
+    MAIN_MENU_FLAG = 1,
+    TPG_MENU_FLAG,
+    ISP_MODULE_MENU_FLAG
+}DEBUG_MENU_FLAG;
+
 
 class link_board : public QMainWindow
 {
@@ -37,6 +63,7 @@ public:
     ~link_board();
     void Read_Data();
     int  Write_Data(QByteArray transdata);
+    void SendByte(char transdata);
 
 private slots:
     void on_clear_btn_clicked();
@@ -67,6 +94,7 @@ public:
     void SCALE_DoubleClicked();
     void CROP_DoubleClicked();
     void YFC_DoubleClicked();
+    void Debug_DoubleClicked();
     QSerialPort* serial;   ////串口对象
 private:
     Ui::link_board *ui;
