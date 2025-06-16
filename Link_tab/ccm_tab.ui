@@ -1,22 +1,149 @@
-<UI version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>CCM_tabClass</class>
- <widget class="QWidget" name="CCM_tabClass" >
-  <property name="objectName" >
-   <string notr="true">CCM_tabClass</string>
-  </property>
-  <property name="geometry" >
+ <widget class="QWidget" name="CCM_tabClass">
+  <property name="geometry">
    <rect>
-	<x>0</x>
-	<y>0</y>
-	<width>600</width>
-	<height>400</height>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>400</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>CCM_tab</string>
-  </property>$centralwidget$
+  </property>
+  <widget class="QSpinBox" name="ccm_a11">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>60</y>
+     <width>111</width>
+     <height>28</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="ccm_a12">
+   <property name="geometry">
+    <rect>
+     <x>230</x>
+     <y>60</y>
+     <width>111</width>
+     <height>28</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="ccm_a13">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>60</y>
+     <width>111</width>
+     <height>28</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="ccm_a22">
+   <property name="geometry">
+    <rect>
+     <x>230</x>
+     <y>130</y>
+     <width>111</width>
+     <height>28</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="ccm_a21">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>130</y>
+     <width>111</width>
+     <height>28</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="ccm_a23">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>130</y>
+     <width>111</width>
+     <height>28</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="ccm_a32">
+   <property name="geometry">
+    <rect>
+     <x>230</x>
+     <y>200</y>
+     <width>111</width>
+     <height>28</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="ccm_a31">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>200</y>
+     <width>111</width>
+     <height>28</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="ccm_a33">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>200</y>
+     <width>111</width>
+     <height>28</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>20</y>
+     <width>121</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>CCM Matrix</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="ccm_read_btn">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>300</y>
+     <width>131</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Read REG</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="ccm_write_btn">
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>300</y>
+     <width>151</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Write REG</string>
+   </property>
+  </widget>
  </widget>
- <layoutDefault spacing="6" margin="11" />
- <pixmapfunction></pixmapfunction>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
  <connections/>
-</UI>
+</ui>

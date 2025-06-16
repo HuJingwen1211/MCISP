@@ -168,7 +168,6 @@ void Debug::on_DPC_MODULE_EN_check_stateChanged(int arg1)
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"1\n";
     link_tab->Write_Data(transdata);        /////发送组合数据
-
 }
 
 
