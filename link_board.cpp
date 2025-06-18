@@ -1,6 +1,255 @@
 ﻿#include "link_board.h"
 #include "ui_link_board.h"
 #include <QDebug>
+#include <QFileDialog>
+#include <QMessageBox>
+
+#include "Link_tab/test_tab.h"
+#include "Link_tab/dpc_tab.h"
+#include "Link_tab/enable_tab.h"
+#include "Link_tab/blc_tab.h"
+#include "Link_tab/lsc_tab.h"
+#include "Link_tab/nr_raw_tab.h"
+#include "Link_tab/awb_tab.h"
+#include "Link_tab/dms_tab.h"
+#include "Link_tab/ccm_tab.h"
+#include "Link_tab/ee_tab.h"
+#include "Link_tab/tm_tab.h"
+#include "Link_tab/gamma_tab.h"
+#include "Link_tab/csc_tab.h"
+#include "Link_tab/nr_yuv_tab.h"
+#include "Link_tab/gb_tab.h"
+#include "Link_tab/scale_tab.h"
+#include "Link_tab/crop_tab.h"
+#include "Link_tab/yfc_tab.h"
+#include "Link_tab/debug.h"
+#include "Link_tab/capture_tab.h"
+
+int link_board::Send(const uint8_t *data, uint16_t len)
+{
+    if (!serial || !serial->isOpen()) {
+        ui->echo_text->appendPlainText("串口未打开");
+        return -1;
+    }
+    // 将数据写入串口
+    qint64 bytesWritten = serial->write(reinterpret_cast<const char*>(data), len);
+    if (bytesWritten == -1) {
+        ui->echo_text->appendPlainText("串口发送失败");
+    } else if (bytesWritten != len) {
+        ui->echo_text->appendPlainText("发送长度错误");
+    }
+    // 确保数据被发送
+    if (!serial->waitForBytesWritten(1000)) {
+        ui->echo_text->appendPlainText("串口发送延时");
+    }
+    return 0;
+}
+
+uint16_t link_board::CRC16_Check(const uint8_t *data, uint8_t len)
+{
+    uint16_t CRC16 = 0xFFFF;
+    uint8_t state,i,j;
+    for(i = 0; i < len; i++ )
+    {
+        CRC16 ^= data[i];
+        for( j = 0; j < 8; j++)
+        {
+            state = CRC16 & 0x01;
+            CRC16 >>= 1;
+            if(state)
+            {
+                CRC16 ^= 0xA001;
+            }
+        }
+    }
+    return CRC16;
+}
+
+void link_board::Receive(uint8_t byteData)
+{
+    // 进行数据解析 状态机
+    switch(frameState.step)
+    {
+    case 0://接收帧头1状态
+        if(byteData == 0xA5)
+        {
+            frameState.step++;
+            frameState.cnt = 0;
+            frameState.Buf[frameState.cnt++] = byteData;
+        }
+        break;
+
+    case 1://接收帧头2状态
+        if(byteData == 0x5A)
+        {
+            frameState.step++;
+            frameState.Buf[frameState.cnt++] = byteData;
+        }
+        else if(byteData == 0xA5)
+        {
+            frameState.step = 1;
+        }
+        else
+        {
+            frameState.step = 0;
+        }
+        break;
+
+    case 2://接收数据长度字节状态
+        frameState.step++;
+        frameState.Buf[frameState.cnt++] = byteData;
+        frameState.len = byteData;
+        break;
+
+    case 3://接收命令字节状态
+        frameState.step++;
+        frameState.Buf[frameState.cnt++] = byteData;
+        frameState.cmd = byteData;
+        frameState.data_ptr = &frameState.Buf[frameState.cnt];//记录数据指针首地址
+        if(frameState.len == 0) frameState.step++;//数据字节长度为0则跳过数据接收状态
+        break;
+
+    case 4://接收len字节数据状态
+        frameState.Buf[frameState.cnt++] = byteData;
+        if(frameState.data_ptr + frameState.len == &frameState.Buf[frameState.cnt])//利用指针地址偏移判断是否接收完len位数据
+        {
+            frameState.step++;
+        }
+        break;
+
+    case 5://接收crc16校验高8位字节
+        frameState.step++;
+        frameState.crc16 = byteData;
+        break;
+
+    case 6://接收crc16校验低8位字节
+        frameState.crc16 <<= 8;
+        frameState.crc16 += byteData;
+        if(frameState.crc16 == CRC16_Check(frameState.Buf, frameState.cnt))//校验正确进入下一状态
+        {
+            frameState.step++;
+        }
+        else if(byteData == 0xA5)
+        {
+            frameState.step = 1;
+        }
+        else
+        {
+            frameState.step = 0;
+        }
+        break;
+
+    case 7://接收帧尾
+        if(byteData == 0xFF)//帧尾接收正确
+        {
+            QByteArray frameData(reinterpret_cast<const char*>(frameState.data_ptr), frameState.len);
+            emit frameReceived(frameState.cmd, frameData);
+            // Data_Analysis(frameState.cmd, frameState.data_ptr, frameState.len);
+            frameState.step = 0;
+        }
+        else if(byteData == 0xA5)
+        {
+            frameState.step = 1;
+        }
+        else
+        {
+            frameState.step = 0;
+        }
+        break;
+
+    default:
+        frameState.step = 0;
+        break;
+    }
+    if(frameState.step == 0 && byteData != 0xFF)
+    {
+        qDebug() << "Discarded byte:" << Qt::hex << byteData;
+    }
+}
+
+
+void link_board::process_recv_image(const QByteArray &data)
+{
+    // 检查数据是否包含完整的帧头(8字节: 4字节帧序号 + 4字节总帧数)
+    if (data.size() < 8) {
+        qDebug()<<"Frame too small to contain header";
+        return;
+    }
+    const uchar *ptr = reinterpret_cast<const uchar*>(data.constData());
+
+    uint32_t frameIndex = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
+    uint32_t totalFrames = (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7];
+    // qDebug()<<"datasize:"<<data.size();
+    // qDebug() << "first values:" << frameIndex << "sencond:"<<totalFrames;
+
+    const uint32_t payloadSize = data.size() - 8;
+
+    qDebug()<<"frameIndex:"<<frameIndex<<"totalFrames:"<<totalFrames;
+    // return;
+
+    // 检查是否是新的图像传输
+    if (frameIndex == 0) {
+        if (currentReception.active) {
+            qDebug()<<"New image started before previous completed";
+        }
+        startNewReception(totalFrames, payloadSize);
+    }
+    // 验证当前接收状态
+    if (!currentReception.active) {
+        qDebug()<<"Received frame without valid reception state";
+        return;
+    }
+    if (totalFrames != currentReception.totalFrames) {
+        qDebug()<<(QString("Total frames mismatch. Expected: %1, Received: %2").arg(currentReception.totalFrames).arg(totalFrames));
+        resetReception();
+        return;
+    }
+    if (frameIndex >= currentReception.totalFrames) {
+        qDebug()<<(QString("Frame index out of range. Max: %1, Received: %2").arg(currentReception.totalFrames - 1).arg(frameIndex));
+        resetReception();
+        return;
+    }
+    // 检查帧数据大小是否一致(第一帧除外)
+    if (frameIndex !=totalFrames-1 && payloadSize != currentReception.frameDataSize) {
+        qDebug()<<(QString("Frame size mismatch. Expected: %1, Received: %2").arg(currentReception.frameDataSize).arg(payloadSize));
+        resetReception();
+        return;
+    }
+    // 存储帧数据
+    currentReception.frameData[frameIndex] = QByteArray(data.constData() + 8, payloadSize);
+    currentReception.receivedFrames++;
+    // 检查是否完成接收
+    if (currentReception.receivedFrames == currentReception.totalFrames) {
+        // 组合所有帧数据
+        QByteArray completeImage;
+        for (const QByteArray &frame : currentReception.frameData) {
+            completeImage.append(frame);
+        }
+
+        emit imageReceived(completeImage);
+        resetReception();
+    }
+}
+
+void link_board::resetReception()
+{
+    currentReception.active = false;
+    currentReception.totalFrames = 0;
+    currentReception.receivedFrames = 0;
+    currentReception.frameDataSize = 0;
+    currentReception.frameData.clear();
+}
+
+void link_board::startNewReception(uint32_t totalFrames, uint32_t frameDataSize)
+{
+    currentReception.active = true;
+    currentReception.totalFrames = totalFrames;
+    currentReception.receivedFrames = 0;
+    currentReception.frameDataSize = frameDataSize;
+    currentReception.frameData.resize(totalFrames);
+}
+
+
 
 link_board::link_board(QWidget *parent) :
     QMainWindow(parent),
@@ -24,12 +273,37 @@ link_board::link_board(QWidget *parent) :
     //设置波特率下拉菜单默认显示第1项
     ui->baud_combx->setCurrentIndex(0);
     ui->link_statu->setStyleSheet("background-color: #FF3030;"); ////指示灯为红
+    //连接帧收到信号与数据处理函数
+    connect(this, SIGNAL(frameReceived(uint8_t,QByteArray)), this, SLOT(process_cmd_data(uint8_t,QByteArray)));
+    connect(this, SIGNAL(imageReceived(QByteArray)),SLOT(save_image(QByteArray)));
+    resetReception();
 }
 
 
 link_board::~link_board()
 {
     delete ui;
+}
+
+void link_board::send_cmd_data(uint8_t cmd, const uint8_t *datas, uint16_t len)
+{
+    uint8_t buf[BUFFER_SIZE];
+    uint8_t i;
+    uint16_t cnt=0;
+    uint16_t crc16;
+    buf[cnt++] = 0xA5;
+    buf[cnt++] = 0x5A;
+    buf[cnt++] = len;
+    buf[cnt++] = cmd;
+    for(i=0;i<len;i++)
+    {
+        buf[cnt++] = datas[i];
+    }
+    crc16 = CRC16_Check(buf,len+4);
+    buf[cnt++] = crc16>>8;
+    buf[cnt++] = crc16&0xFF;
+    buf[cnt++] = 0xFF;
+    Send(buf,cnt);    //调用数据帧发送函数将打包好的数据帧发送出去
 }
 
 /////接收串口数据
@@ -77,6 +351,51 @@ void link_board::SendByte(char transdata){
     }
 }
 
+void link_board::handle_redy_read()
+{
+    if (!serial || !serial->isOpen()) {
+        return;
+    }
+    QByteArray receivedData = serial->readAll();
+    // 将接收到的数据逐个字节送入状态机
+    for(int i = 0; i < receivedData.size(); ++i) {
+        Receive(static_cast<uint8_t>(receivedData.at(i)));
+    }
+}
+
+void link_board::process_cmd_data(uint8_t cmd, const QByteArray &data)
+{
+    int len=data.size();
+    // if (cmd==0x01) {
+    //     qDebug() << "cmd:" << cmd << "data:" << data;
+    //     // ui->recv_text->appendPlainText(QString("cmd:%1  data:%2").arg(cmd).arg(QString(data)));
+    // }else {
+    //     if (len==4) {
+    //         uint32_t value = static_cast<uint32_t>(data[3] << 24 | data[2] << 16 | data[1] << 8 | data[0]);
+    //         qDebug() << "cmd:" << cmd << "data:" << value;
+    //         // ui->recv_text->appendPlainText(QString("cmd:%1  data:%2").arg(cmd).arg(value,8, 16, QLatin1Char('0')));
+    //     }else {
+    //         qDebug() << "len!=4???";
+    //     }
+    // }
+    switch(cmd){
+        case STR_CMD:
+            ui->echo_text->appendPlainText(QString(" data:%2").arg(QString(data)));
+            break;       ///ZYNQ发送的字符串
+        case DEBUG_CMD:break;     //ZYNQ接收,不返回
+        case WRITE_REG_CMD:break; //ZYNQ接收并配置寄存器，不返回
+
+        case READ_REG_CMD:break;  //返回读取的寄存器值
+        case CAPTURE_CMD:
+            process_recv_image(data);
+            break;   //返回捕捉的视频帧
+        case TEST_RW_CMD:
+            emit test_rw_signal(data);
+            break;
+        default:break;
+    }
+}
+
 ///清空echo Text
 void link_board::on_clear_btn_clicked()
 {
@@ -111,8 +430,8 @@ void link_board::on_link_btn_clicked()
        ///ui->sendButton->setEnabled(true);
 
        ////设置串口接收数据ready
-       QObject::connect(serial, &QSerialPort::readyRead, this, &link_board::Read_Data);  ////连接接收信号槽函数
-       this->SendByte(CONNECT_CODE);   //发送连接代码
+       // QObject::connect(serial, &QSerialPort::readyRead, this, &link_board::Read_Data);  ////连接接收信号槽函数
+        connect(serial, SIGNAL(readyRead()), this, SLOT(handle_redy_read()));
    }else{
        //关闭串口
        serial->clear();
@@ -186,6 +505,9 @@ void link_board::on_module_list_itemDoubleClicked(QTreeWidgetItem *item, int col
     else if(item->text(column) == "Debug"){
         Debug_DoubleClicked();
     }
+    else if(item->text(column) == "CAPTURE"){
+        Capture_DoubleClicked();
+    }
 }
 
 
@@ -229,6 +551,7 @@ void link_board::TEST_DoubleClicked()
         int cur=ui->link_tab->addTab(tab,QString::asprintf(" TEST "));
         ui->link_tab->setCurrentIndex(cur);
         ui->link_tab->setVisible(true);
+        connect(this,SIGNAL(test_rw_signal(QByteArray)),tab,SLOT(read_reg_process(QByteArray)));
     }
 }
 
@@ -586,7 +909,25 @@ void link_board::Debug_DoubleClicked()
     }
 }
 
-
+void link_board::Capture_DoubleClicked()
+{
+    bool is_exist = 0;
+    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
+        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
+        if (capture_tab* tab = dynamic_cast<capture_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
+            ui->link_tab->setCurrentIndex(i);            /////如果之前创建了就定位到之前的tab
+            is_exist = 1;
+            break;
+        }
+    }
+    if (!is_exist) {
+        capture_tab* tab = new capture_tab(this);
+        tab->setAttribute(Qt::WA_DeleteOnClose);
+        int cur = ui->link_tab->addTab(tab, QString::asprintf(" Capture "));
+        ui->link_tab->setCurrentIndex(cur);
+        ui->link_tab->setVisible(true);
+    }
+}
 
 //////关闭Tab时清除内存
 void link_board::on_link_tab_tabCloseRequested(int index)
@@ -595,6 +936,41 @@ void link_board::on_link_tab_tabCloseRequested(int index)
     ui->link_tab->removeTab(index);
     delete tab;                            ////关闭Tab后释放Tab占用的资源
     //tab->close();
+}
+
+void link_board::save_image(const QByteArray &imageData)
+{
+    //弹出文件保存对话框
+    QString fileName = QFileDialog::getSaveFileName(
+        this,                           // 父窗口
+        tr("保存文件"),                 // 对话框标题
+        QDir::homePath(),               // 默认打开目录（用户主目录）
+        tr("图片文件 (*.raw *.rgb *.yuv);;所有文件 (*)") // 文件过滤器
+        );
+    // 如果用户取消选择，fileName为空
+    if (fileName.isEmpty()) {
+        qDebug() << "用户取消了保存操作";
+        return;
+    }
+
+    // 创建并打开文件
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this,tr("错误"),tr("无法创建文件:\n%1").arg(file.errorString()));
+        return;
+    }
+
+    // 写入二进制数据
+    qint64 bytesWritten = file.write(imageData);
+    file.close();
+
+    // 检查写入是否成功
+    if (bytesWritten != imageData.size()) {
+        QMessageBox::critical(this, tr("错误"), tr("写入文件不完整\n期望写入:%1字节\n实际写入:%2字节").arg(imageData.size()).arg(bytesWritten));
+        return;
+    }
+    // 保存成功提示
+    QMessageBox::information(this, tr("成功"), tr("图像已成功保存到:\n%1").arg(fileName));
 }
 
 

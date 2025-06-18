@@ -257,11 +257,22 @@
       </column>
       <item>
        <property name="text">
+        <string>TEST</string>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+      </item>
+      <item>
+       <property name="text">
         <string>Debug</string>
        </property>
        <property name="font">
         <font>
-         <pointsize>11</pointsize>
+         <pointsize>9</pointsize>
          <bold>true</bold>
         </font>
        </property>
@@ -272,8 +283,18 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>11</pointsize>
+         <pointsize>9</pointsize>
          <bold>true</bold>
+        </font>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>CAPTURE</string>
+       </property>
+       <property name="font">
+        <font>
+         <bold>false</bold>
         </font>
        </property>
       </item>
@@ -430,16 +451,6 @@
       <item>
        <property name="text">
         <string>YFC</string>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>TEST</string>
        </property>
        <property name="font">
         <font>

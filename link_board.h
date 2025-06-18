@@ -5,52 +5,74 @@
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 #include <QTreeWidget>
-#include "Link_tab/test_tab.h"
-#include "Link_tab/dpc_tab.h"
-#include "Link_tab/enable_tab.h"
-#include "Link_tab/blc_tab.h"
-#include "Link_tab/lsc_tab.h"
-#include "Link_tab/nr_raw_tab.h"
-#include "Link_tab/awb_tab.h"
-#include "Link_tab/dms_tab.h"
-#include "Link_tab/ccm_tab.h"
-#include "Link_tab/ee_tab.h"
-#include "Link_tab/tm_tab.h"
-#include "Link_tab/gamma_tab.h"
-#include "Link_tab/csc_tab.h"
-#include "Link_tab/nr_yuv_tab.h"
-#include "Link_tab/gb_tab.h"
-#include "Link_tab/scale_tab.h"
-#include "Link_tab/crop_tab.h"
-#include "Link_tab/yfc_tab.h"
-#include "Link_tab/debug.h"
+
 
 #define BUFFER_SIZE   256    ///发送接收的最大缓存
+#define STR_CMD       0x01
+#define DEBUG_CMD     0x02
+#define WRITE_REG_CMD 0x03
+#define READ_REG_CMD  0x04
+#define CAPTURE_CMD   0x05
+#define TEST_RW_CMD   0x06
 
 namespace Ui {
 class link_board;
 }
 
-
 class link_board : public QMainWindow
 {
     Q_OBJECT
 
+signals:
+    void frameReceived(uint8_t cmd, const QByteArray &data);  // 完整帧接收信号
+    void imageReceived(const QByteArray &imageData);
+    ////各个模块的signal
+    void test_rw_signal(const QByteArray &regData);
+
+private:
+    int Send(const uint8_t *data,uint16_t len);   //串口发送
+    uint16_t CRC16_Check(const uint8_t *data,uint8_t len);  //CRC校验
+    void Receive(uint8_t byteData);  // 帧解析状态机
+    //状态机变量
+    struct {
+        uint8_t step = 0;
+        uint8_t cnt = 0;
+        uint8_t Buf[300];
+        uint8_t len = 0;
+        uint8_t cmd = 0;
+        uint8_t *data_ptr = nullptr;
+        uint16_t crc16 = 0;
+    } frameState;
+    struct ImageReception {
+        bool active = false;
+        uint32_t totalFrames = 0;
+        uint32_t receivedFrames = 0;
+        uint32_t frameDataSize = 0;
+        QVector<QByteArray> frameData;
+    };
+    void process_recv_image(const QByteArray &data);
+    void resetReception();
+    void startNewReception(uint32_t totalFrames, uint32_t frameDataSize);
+    ImageReception currentReception;
+    QByteArray partialFrame;
+
 public:
     explicit link_board(QWidget *parent = 0);
     ~link_board();
-
-
+    void send_cmd_data(uint8_t cmd,const uint8_t *datas,uint16_t len);   //封装命令数据并发送
 
     void Read_Data();
     int  Write_Data(QByteArray transdata);
     void SendByte(char transdata);
 
 private slots:
+    void handle_redy_read();
+    void process_cmd_data(uint8_t cmd, const QByteArray &data);  //处理命令数据
     void on_clear_btn_clicked();
     void on_link_btn_clicked();
     void on_module_list_itemDoubleClicked(QTreeWidgetItem *item, int column);
     void on_link_tab_tabCloseRequested(int index);
+    void save_image(const QByteArray &imageData);
 
 public:
     void set_echo_text(QString str);
@@ -73,10 +95,14 @@ public:
     void CROP_DoubleClicked();
     void YFC_DoubleClicked();
     void Debug_DoubleClicked();
+    void Capture_DoubleClicked();
     QSerialPort* serial;   ////串口对象
+
 private:
     Ui::link_board *ui;
     
 };
+
+
 
 #endif // LINK_BOARD_H

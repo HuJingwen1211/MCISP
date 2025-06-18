@@ -6,6 +6,14 @@
 #include <QButtonGroup>
 // #include <qDebug>
 
+
+#define CAMERA_SENSOR    'S'
+#define TPG_MENU         'T'
+#define ISP_EN           'I'
+#define SD_SAVE          'D'
+
+
+
 namespace Ui {
 class Debug;
 }

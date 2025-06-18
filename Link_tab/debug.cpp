@@ -1,7 +1,6 @@
 #include "debug.h"
 #include "ui_debug.h"
 
-
 Debug::Debug(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Debug)
@@ -63,49 +62,61 @@ Debug::~Debug()
 
 void Debug::on_sensor_btn_clicked()
 {
-    QByteArray transdata;
-    QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
-    stream <<'S';
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // QByteArray transdata;
+    // QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
+    // stream <<'S';
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[1]={CAMERA_SENSOR};
+    // databuf[0]=CAMERA_SENSOR;
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,1);
 }
 
 
 void Debug::on_tpg_btn_clicked()
 {
-    QByteArray transdata;
-    QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
-    stream <<'T';
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // QByteArray transdata;
+    // QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
+    // stream <<'T';
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+
+    uint8_t databuf[1]={TPG_MENU};
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,1);
     ui->tabWidget->setCurrentIndex(1);
 }
 
 
 void Debug::on_isp_en_btn_clicked()
 {
-    QByteArray transdata;
-    QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
-    stream <<'I';
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // QByteArray transdata;
+    // QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
+    // stream <<'I';
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[1]={ISP_EN};
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,1);
     ui->tabWidget->setCurrentIndex(2);
 }
 
 
 void Debug::on_sd_save_btn_clicked()
 {
-    QByteArray transdata;
-    QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
-    stream <<'D';
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // QByteArray transdata;
+    // QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
+    // stream <<'D';
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[1]={SD_SAVE};
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,1);
 }
 
 
 
 void Debug::on_tpg_back_btn_clicked()
 {
-    QByteArray transdata;
-    QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
-    stream <<"99\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // QByteArray transdata;
+    // QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
+    // stream <<"99\n";
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[]={"99\n"};
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,3);
     ui->tabWidget->setCurrentIndex(0);
 }
 
@@ -118,16 +129,21 @@ void Debug::on_tpg_cfg_btn_clicked()
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<numstr<<'\n';
-    link_tab->Write_Data(transdata);
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
+    // link_tab->Write_Data(transdata);
 }
 
 
 void Debug::on_isp_back_btn_clicked()
 {
-    QByteArray transdata;
-    QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
-    stream <<"99\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // QByteArray transdata;
+    // QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
+    // stream <<"99\n";
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[]={"99\n"};
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,3);
     ui->tabWidget->setCurrentIndex(0);
 }
 
@@ -159,7 +175,10 @@ void Debug::on_TPG_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"0\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 }
 
 void Debug::on_DPC_MODULE_EN_check_stateChanged(int arg1)
@@ -167,7 +186,10 @@ void Debug::on_DPC_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"1\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 }
 
 
@@ -176,7 +198,10 @@ void Debug::on_BLC_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"2\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 
 }
 
@@ -186,7 +211,10 @@ void Debug::on_LSC_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"3\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 }
 
 
@@ -195,7 +223,10 @@ void Debug::on_NR_RAW_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"4\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 }
 
 
@@ -204,7 +235,10 @@ void Debug::on_AWB_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"5\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 }
 
 
@@ -213,7 +247,10 @@ void Debug::on_WBC_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"6\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 
 }
 
@@ -222,7 +259,10 @@ void Debug::on_STA_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"7\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 
 }
 
@@ -231,7 +271,10 @@ void Debug::on_GB_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"8\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 }
 
 void Debug::on_DMS_MODULE_EN_check_stateChanged(int arg1)
@@ -239,7 +282,10 @@ void Debug::on_DMS_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"9\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 }
 
 
@@ -248,7 +294,10 @@ void Debug::on_CCM_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"10\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 }
 
 
@@ -257,7 +306,10 @@ void Debug::on_GAMMA_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"11\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 
 }
 
@@ -267,7 +319,10 @@ void Debug::on_CSC_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"12\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 
 }
 
@@ -277,7 +332,10 @@ void Debug::on_NR_YUV_MODULE_EN_check_stateChanged(int arg1)
     QByteArray transdata;
     QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
     stream <<"13\n";
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    // link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[10];
+    memcpy(databuf,transdata.constData(),transdata.size());
+    link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 }
 
 

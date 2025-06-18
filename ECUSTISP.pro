@@ -33,6 +33,7 @@ CONFIG(release, debug|release) {
 SOURCES += \
     Link_tab/awb_tab.cpp \
     Link_tab/blc_tab.cpp \
+    Link_tab/capture_tab.cpp \
     Link_tab/ccm_tab.cpp \
     Link_tab/crop_tab.cpp \
     Link_tab/csc_tab.cpp \
@@ -73,6 +74,7 @@ SOURCES += \
 HEADERS += \
     Link_tab/awb_tab.h \
     Link_tab/blc_tab.h \
+    Link_tab/capture_tab.h \
     Link_tab/ccm_tab.h \
     Link_tab/crop_tab.h \
     Link_tab/csc_tab.h \
@@ -112,6 +114,7 @@ HEADERS += \
 FORMS += \
     Link_tab/awb_tab.ui \
     Link_tab/blc_tab.ui \
+    Link_tab/capture_tab.ui \
     Link_tab/ccm_tab.ui \
     Link_tab/crop_tab.ui \
     Link_tab/csc_tab.ui \

@@ -19,16 +19,16 @@ public:
     ~TEST_tab();
 
 private slots:
-    void on_config_btn_clicked();
+    void on_test_read_btn_clicked();
+
+    void on_test_write_btn_clicked();
+    void read_reg_process(const QByteArray &regData);
 
 private:
     Ui::TEST_tab *ui;
     link_board *link_tab;
-    quint32  BaseAddr;   ///4字节及基地址
-    quint16  OffsetAddr; ///2字节偏移地址
-    qint32   test_value;        ///4字节有符号值
-    //QString hexString = hexInput.text();
-    //int decimalValue = hexString.toInt(&ok, 16);   if(ok)
+
+
 };
 
 #endif // TEST_TAB_H
