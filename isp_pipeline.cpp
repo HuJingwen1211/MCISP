@@ -88,13 +88,13 @@ ISP_Pipeline::~ISP_Pipeline()
     delete nryuv_cfg_reg;
     nryuv_cfg_reg=nullptr;
     /////raw_color_image
-    if(raw_clor_image!=nullptr){  /////这里QImage类型居然是用free来释放空间,大坑啊啊啊啊，使用delete raw_clor_image会导致程序奔溃，TMD
-        free(raw_clor_image);
+    if(raw_clor_image!=nullptr){
+        delete raw_clor_image;
         raw_clor_image=nullptr;
     }
     ////rgb_color_image
     if(rgb_color_image!=nullptr){
-      free(rgb_color_image);      //////使用free，否则程序闪退
+      delete rgb_color_image;
       //delete rgb_color_image;
       rgb_color_image=nullptr;
     }
@@ -102,6 +102,7 @@ ISP_Pipeline::~ISP_Pipeline()
 
 void ISP_Pipeline::clear_data()    ////只清理new出来的数据
 {
+
     if(isp_image->BAYER_DAT!=nullptr){
         delete [] isp_image->BAYER_DAT;
         isp_image->BAYER_DAT=nullptr;
@@ -166,13 +167,23 @@ int load_raw_image(ISP_PARAM *isp_param, ISP_IMAGE *image)
         QMessageBox::critical(nullptr, "Error", "Can not open file!");
         //qDebug("Err: load_image: file not found! (%s)\n", isp_param->input_image_file);
         return -1;
-     }
+    }
 
-    long expectedSize_16 = isp_param->input_height*isp_param->input_width*2;  ///输入RAW图像应有的字节数，每个像素2字节
+    long expectedSize;
+
+    if(isp_param->sensor_bits <= 8){
+        expectedSize = isp_param->input_height*isp_param->input_width;
+    }else{
+        expectedSize = isp_param->input_height*isp_param->input_width*2;
+    }
+
+    // long expectedSize_16 = isp_param->input_height*isp_param->input_width*2;  ///输入RAW图像应有的字节数，每个像素2字节
     fseek(image_file, 0, SEEK_END); // 定位到文件末尾
     long fileSize = ftell(image_file); // 获取文件大小
     fseek(image_file, 0, SEEK_SET); // 定位回文件开头
-    if ( fileSize != expectedSize_16 ){         //////判断读取的raw图像大小是否与输入的尺寸一致
+
+
+    if ( fileSize != expectedSize ){         //////判断读取的raw图像大小是否与输入的尺寸一致
         QMessageBox::critical(nullptr, "Error", "File size not match the width and height, pleasee check and retry!");
         return -1;
     }
@@ -190,7 +201,17 @@ int load_raw_image(ISP_PARAM *isp_param, ISP_IMAGE *image)
     image->YUV_DAT[YUV_V]=new u16[image->pic_size]();
 
     /////如果一切无误则从该文件中读取数据
-    fread(image->BAYER_DAT, sizeof(u16), static_cast<size_t>(image->input_width*image->input_height) , image_file);
+    if(isp_param->sensor_bits <= 8){
+        u8* raw8_data = new u8[image->pic_size]();
+        fread(raw8_data, sizeof(u8), static_cast<size_t>(image->pic_size), image_file);
+        for (int i = 0; i < image->pic_size; i++) {
+             image->BAYER_DAT[i] = static_cast<u16>(raw8_data[i]);
+        }
+        delete[] raw8_data;
+    }else{
+        fread(image->BAYER_DAT, sizeof(u16), static_cast<size_t>(image->input_width*image->input_height) , image_file);
+    }
+
     fclose(image_file);
     return 0;
 }
@@ -738,8 +759,12 @@ void gamma(ISP_IMAGE *isp_image, gamma_register *gamma_reg, const ISP_PARAM *isp
             for (size_t i = 0; i < 3; i++) {	//xkISP的方法就是分段线性拟合gamma曲线
                 index = src_w[i] >> (isp_param->sensor_bits-7);    // 每128一段，获取段起始坐标12-7=4
                 x_val = src_w[i] & ((1<<(isp_param->sensor_bits-7))-1);  // x_pos是x-a的值
-                y_pos_0 =   (gamma_reg->gm_lut[index]) * (1<<(isp_param->sensor_bits-10)); /////查找表查出来的值是10位的,需要与输入的比特位相同则要补偿
-                y_pos_1 =   (gamma_reg->gm_lut[index+1]) *(1<<(isp_param->sensor_bits-10));
+                int sensorbits = isp_param->sensor_bits;
+                // y_pos_0 =   (gamma_reg->gm_lut[index]) * (1<<(isp_param->sensor_bits-10)); /////查找表查出来的值是10位的,需要与输入的比特位相同则要补偿
+                // y_pos_1 =   (gamma_reg->gm_lut[index+1]) *(1<<(isp_param->sensor_bits-10));
+                y_pos_0 =  sensorbits >= 10 ? (gamma_reg->gm_lut[index]) <<(sensorbits - 10) : (gamma_reg->gm_lut[index])>>(10 - sensorbits); /////查找表查出来的值是10位的,需要与输入的比特位相同则要补偿
+                y_pos_1 =   sensorbits >= 10 ? (gamma_reg->gm_lut[index+1]) <<(sensorbits - 10) : (gamma_reg->gm_lut[index+1])>>(10 - sensorbits);
+
                 temp_0  =   (y_pos_1 - y_pos_0) * x_val;   ///获取段内偏移值
                 temp_1  =   y_pos_0 + (temp_0 >> 7);       ///获取整体偏移值，>>7是除以步长
                 isp_image->RGB_DAT[i][pixel_pos] = clip_to_sensorbits(isp_param->sensor_bits,temp_1);
@@ -1495,10 +1520,11 @@ void csc(ISP_IMAGE *isp_image,csc_reg_t *csc_cfg_reg,const ISP_PARAM *isp_param)
 
             for (size_t i = 0; i < 3; i++) {    ////将输入的图像转为10bit位宽
                 pix_rgb_tmp[i]  =   isp_image->RGB_DAT[i][pixel_pos] + csc_cfg_reg->offset_in[i];
-                if ((pix_rgb_tmp[i]>>(sensor_bits-10)) > 1023) {
+                u16 rgb_trans = sensor_bits>10?pix_rgb_tmp[i]>>(sensor_bits-10):pix_rgb_tmp[i]<<(10-sensor_bits);
+                if (rgb_trans > 1023) {
                     pix_rgb[i]  =   1023;
                 } else {
-                    pix_rgb[i]  =   pix_rgb_tmp[i]>>(sensor_bits-10);  ///转为10bit
+                    pix_rgb[i]  =   rgb_trans;  ///转为10bit
                 }
             }
 

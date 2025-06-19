@@ -42,7 +42,6 @@
        <font>
         <family>Times New Roman</family>
         <pointsize>10</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -58,7 +57,6 @@
             <font>
              <family>Times New Roman</family>
              <pointsize>10</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -73,7 +71,6 @@
             <font>
              <family>Times New Roman</family>
              <pointsize>10</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -85,7 +82,6 @@
             <font>
              <family>Times New Roman</family>
              <pointsize>10</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -100,7 +96,6 @@
             <font>
              <family>Times New Roman</family>
              <pointsize>10</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -112,7 +107,6 @@
             <font>
              <family>Times New Roman</family>
              <pointsize>10</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -127,12 +121,11 @@
             <font>
              <family>Times New Roman</family>
              <pointsize>10</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
            <property name="minimum">
-            <number>9</number>
+            <number>8</number>
            </property>
            <property name="maximum">
             <number>16</number>
@@ -153,7 +146,6 @@
           <font>
            <family>Times New Roman</family>
            <pointsize>12</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -168,7 +160,6 @@
           <font>
            <family>Times New Roman</family>
            <pointsize>12</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -186,7 +177,6 @@
        <font>
         <family>Times New Roman</family>
         <pointsize>10</pointsize>
-        <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
@@ -203,7 +193,7 @@
     <item row="1" column="1">
      <spacer name="verticalSpacer">
       <property name="orientation">
-       <enum>Qt::Vertical</enum>
+       <enum>Qt::Orientation::Vertical</enum>
       </property>
       <property name="sizeHint" stdset="0">
        <size>

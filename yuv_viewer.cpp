@@ -8,6 +8,10 @@ YUV_Viewer::YUV_Viewer(QWidget *parent) :
     ui->setupUi(this);
     view=new My_GraphicsView();
     isPacked=1;   ///初始勾选packed
+    rgb_image =nullptr;
+    yuv_data[0] = nullptr;
+    yuv_data[1] = nullptr;
+    yuv_data[2] = nullptr;
 }
 
 YUV_Viewer::~YUV_Viewer()
@@ -20,7 +24,7 @@ YUV_Viewer::~YUV_Viewer()
 void YUV_Viewer::clear_last()
 {
     if(rgb_image){
-        free(rgb_image);
+        delete rgb_image;
         rgb_image=nullptr;   // 将指针置为nullptr，避免悬挂指针问题
     }
     for(int i=0;i<3;i++){

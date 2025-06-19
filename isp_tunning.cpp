@@ -25,7 +25,10 @@ Tunning_Tab::~Tunning_Tab()    ///////释放动态指针所指向的内存空间
 {
     delete ui;
     delete view;
-    delete isp;
+    if(isp){
+        delete isp;
+    }
+
 //    workerThread->quit();
 //    workerThread->wait();
 //    delete workerThread;
@@ -112,6 +115,9 @@ void Tunning_Tab::init_modules_reg()
     isp->nryuv_cfg_reg->y_filt=6;
     isp->nryuv_cfg_reg->uv_filt=6;
     ////YFC reg
+
+    isp->raw_clor_image =nullptr;
+    isp->rgb_color_image = nullptr;
 }
 
 

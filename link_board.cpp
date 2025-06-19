@@ -365,26 +365,12 @@ void link_board::handle_redy_read()
 
 void link_board::process_cmd_data(uint8_t cmd, const QByteArray &data)
 {
-    int len=data.size();
-    // if (cmd==0x01) {
-    //     qDebug() << "cmd:" << cmd << "data:" << data;
-    //     // ui->recv_text->appendPlainText(QString("cmd:%1  data:%2").arg(cmd).arg(QString(data)));
-    // }else {
-    //     if (len==4) {
-    //         uint32_t value = static_cast<uint32_t>(data[3] << 24 | data[2] << 16 | data[1] << 8 | data[0]);
-    //         qDebug() << "cmd:" << cmd << "data:" << value;
-    //         // ui->recv_text->appendPlainText(QString("cmd:%1  data:%2").arg(cmd).arg(value,8, 16, QLatin1Char('0')));
-    //     }else {
-    //         qDebug() << "len!=4???";
-    //     }
-    // }
     switch(cmd){
         case STR_CMD:
             ui->echo_text->appendPlainText(QString(" data:%2").arg(QString(data)));
             break;       ///ZYNQ发送的字符串
         case DEBUG_CMD:break;     //ZYNQ接收,不返回
         case WRITE_REG_CMD:break; //ZYNQ接收并配置寄存器，不返回
-
         case READ_REG_CMD:break;  //返回读取的寄存器值
         case CAPTURE_CMD:
             process_recv_image(data);

@@ -117,6 +117,9 @@
    </property>
   </widget>
   <widget class="QPushButton" name="ccm_read_btn">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>90</x>

@@ -8,6 +8,11 @@ RGB_Viewer::RGB_Viewer(QWidget *parent) :
 {
     ui->setupUi(this);
     view=new My_GraphicsView();   /////新建view
+    rgb_image = nullptr;
+    rgb_data[0] = nullptr;
+    rgb_data[1] = nullptr;
+    rgb_data[2] = nullptr;
+
 }
 
 RGB_Viewer::~RGB_Viewer()     ////释放内存空间
@@ -20,7 +25,7 @@ RGB_Viewer::~RGB_Viewer()     ////释放内存空间
 void RGB_Viewer::clear_last()   ////重新选择文件后清除上次申请的内存空间,需要判断是否为空，否则会重复释放报错
 {
     if(rgb_image){
-        free(rgb_image);
+        delete rgb_image;
         rgb_image=nullptr;   // 将指针置为nullptr，避免悬挂指针问题
     }
     for(int i=0;i<3;i++){
@@ -43,8 +48,13 @@ int  RGB_Viewer::load_rgb_iamge(QString filepath)
         //qDebug()<<"file not found";
         return -1;
     }
+    long expectedSize;
+    if(sensorbits <= 8){
+        expectedSize = image_height*image_width*3;
+    }else{
+        expectedSize = image_height*image_width*6;
+    }
 
-    long expectedSize = image_height*image_width*6;  ////判断用户输入的长宽是否与文件大小一致，每个像素点每个通道2字节，共3通道
     fseek(image_file, 0, SEEK_END); // 定位到文件末尾
     long fileSize = ftell(image_file); // 获取文件大小
     fseek(image_file, 0, SEEK_SET); // 定位回文件开头
@@ -61,8 +71,14 @@ int  RGB_Viewer::load_rgb_iamge(QString filepath)
     for(int row=0;row<image_height;row++){
         for(int col=0;col<image_width;col++){
             for(int i=0;i<3;i++){
-               fread(&read_val, sizeof(u16), 1, image_file); ///读取数据
-               rgb_data[i][row*image_width+col]=read_val; ///导入数据
+                if(sensorbits <= 8 ){
+                    u8 val_u8=0;
+                    fread(&val_u8, sizeof(u8), 1, image_file); ///读取数据
+                    rgb_data[i][row*image_width+col]=static_cast<u16>(val_u8); ///导入数据
+                }else{
+                    fread(&read_val, sizeof(u16), 1, image_file); ///读取数据
+                    rgb_data[i][row*image_width+col]=read_val; ///导入数据
+                }
             }
         }
     }
@@ -111,6 +127,7 @@ void RGB_Viewer::on_btn_open_clicked()
         return;
     }
     ui->image_box->setTitle("rgb image preview: "+file_name);
-    rgb_image=new QImage(image_width,image_height,QImage::Format_RGB888); ////创建QImage
+    rgb_image=new QImage(image_width,image_height,QImage::Format_RGB888);    ////创建QImage
     display_image();         //////可视化RGB图像
 }
+
