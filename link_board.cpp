@@ -272,7 +272,6 @@ link_board::link_board(QWidget *parent) :
     }
     //设置波特率下拉菜单默认显示第1项
     ui->baud_combx->setCurrentIndex(0);
-    ui->link_statu->setStyleSheet("background-color: #FF3030;"); ////指示灯为红
     //连接帧收到信号与数据处理函数
     connect(this, SIGNAL(frameReceived(uint8_t,QByteArray)), this, SLOT(process_cmd_data(uint8_t,QByteArray)));
     connect(this, SIGNAL(imageReceived(QByteArray)),SLOT(save_image(QByteArray)));
@@ -306,50 +305,38 @@ void link_board::send_cmd_data(uint8_t cmd, const uint8_t *datas, uint16_t len)
     Send(buf,cnt);    //调用数据帧发送函数将打包好的数据帧发送出去
 }
 
-/////接收串口数据
-void link_board::Read_Data()
+void link_board::read_reg_process(const QByteArray &data)
 {
-    QByteArray receivedData;
-    receivedData = serial->readAll();
-    if(!receivedData.isEmpty())
-    {
-//        QDataStream stream(&buf, QIODevice::ReadOnly);
-//        quint32 receivedBaseAddr;
-//        quint16 receivedOffset;
-//        qint32 receivedValue;
-//        stream >> receivedBaseAddr >> receivedOffset >> receivedValue;
-//        set_echo_text("BaseAddr:"+QString::number(receivedBaseAddr, 16).toUpper());
-//        set_echo_text("OffsetAddr:"+QString::number(receivedOffset, 16).toUpper());
-//        set_echo_text("ParamValue:"+QString::number(receivedValue, 10).toUpper());
-        QString receivedString = QString::fromUtf8(receivedData);    ////接收来自串口的数据
-        set_echo_text(receivedString);
+    uint8_t module = data.constData()[0];
+    switch(module){
+        case DPC_MODULE    :
+            break;
+        case BLC_MODULE    :
+            break;
+        case LSC_MODULE    :
+            break;
+        case NR_RAW_MODULE :
+            break;
+        case AWBC_MODULE   :
+            emit awbc_read_done(data);
+            break;
+        case GB_MODULE     :
+            break;
+        case DMS_MODULE    :
+            break;
+        case CCM_MODULE    :
+            break;
+        case GAMMA_MODULE  :
+            break;
+        case CSC_MODULE    :
+            break;
+        case NR_YUV_MODULE :
+            break;
+        default:
+            break;
     }
 }
 
-int link_board::Write_Data(QByteArray transdata)
-{
-    if(!serial || !serial->isOpen()){     /////判断当前串口是否打开
-        set_echo_text("Serial port dose not open, please check and retry!");
-        return -1;
-    }
-    qint64 bytesWritten =serial->write(transdata);   /////发送字节数组,bytesWritten指示发送的字节数
-//    qDebug()<<"transdata is "<<transdata;
-//    qDebug()<<"Writedata is "<<bytesWritten;
-    if(bytesWritten==-1){
-        set_echo_text("Failed to write to serial port:"+serial->errorString());
-        return -1;
-    }else{
-        set_echo_text(tr("Data sent successfully !"));
-    }
-    return 0;
-}
-
-//发送字节
-void link_board::SendByte(char transdata){
-    if (serial->isOpen()) {
-        serial->putChar(transdata);
-    }
-}
 
 void link_board::handle_redy_read()
 {
@@ -371,7 +358,9 @@ void link_board::process_cmd_data(uint8_t cmd, const QByteArray &data)
             break;       ///ZYNQ发送的字符串
         case DEBUG_CMD:break;     //ZYNQ接收,不返回
         case WRITE_REG_CMD:break; //ZYNQ接收并配置寄存器，不返回
-        case READ_REG_CMD:break;  //返回读取的寄存器值
+        case READ_REG_CMD:
+            read_reg_process(data);
+            break;  //返回读取的寄存器值
         case CAPTURE_CMD:
             process_recv_image(data);
             break;   //返回捕捉的视频帧
@@ -391,7 +380,7 @@ void link_board::on_clear_btn_clicked()
 ////连接开发板串口
 void link_board::on_link_btn_clicked()
 {
-   if(ui->link_btn->text()==tr("Link Board")){
+   if(ui->link_btn->text()==tr("Connect")){
        serial = new QSerialPort;             ///创建串口
        serial->setPortName(ui->port_combx->currentText()); ///设置串口名
        serial->setBaudRate(ui->baud_combx->currentText().toInt()); ///设置波特率
@@ -402,7 +391,6 @@ void link_board::on_link_btn_clicked()
        if (serial->open(QIODevice::ReadWrite)) {             //打开串口
            //qDebug() << "Serial port opened successfully!";
            ui->echo_text->appendPlainText(QString("Serial port opened successfully!  Port:%1").arg(ui->port_combx->currentText()));
-           ui->link_statu->setStyleSheet("background-color: #00FF7F;");
        } else {
            ui->echo_text->appendPlainText(QString("Failed to open serial port!"));
            return;
@@ -413,12 +401,11 @@ void link_board::on_link_btn_clicked()
        ui->port_combx->setEnabled(false);
        ui->baud_combx->setEnabled(false);
        ui->link_btn->setText(tr("Disconnect"));
+       ui->link_btn->setStyleSheet("background: #38815c;");
        ///ui->sendButton->setEnabled(true);
-
-       ////设置串口接收数据ready
-       // QObject::connect(serial, &QSerialPort::readyRead, this, &link_board::Read_Data);  ////连接接收信号槽函数
         connect(serial, SIGNAL(readyRead()), this, SLOT(handle_redy_read()));
-   }else{
+
+   }else if(ui->link_btn->text()==tr("Disconnect")){
        //关闭串口
        serial->clear();
        serial->close();
@@ -426,9 +413,8 @@ void link_board::on_link_btn_clicked()
        //恢复设置使能
        ui->port_combx->setEnabled(true);
        ui->baud_combx->setEnabled(true);
-       ui->link_btn->setText(tr("Link Board"));
-       ui->link_statu->setStyleSheet("background-color: #FF3030;");
-       ///ui->sendButton->setEnabled(false);
+       ui->link_btn->setText(tr("Connect"));
+       ui->link_btn->setStyleSheet("background: #455364;");
    }
 }
 
@@ -645,6 +631,7 @@ void link_board::AWB_DoubleClicked()
         int cur = ui->link_tab->addTab(tab, QString::asprintf(" AWB "));
         ui->link_tab->setCurrentIndex(cur);
         ui->link_tab->setVisible(true);
+        connect(this,SIGNAL(awbc_read_done(QByteArray)),tab,SLOT(read_reg_process(QByteArray)));
     }
 }
 

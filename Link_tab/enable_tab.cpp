@@ -1,6 +1,5 @@
 ﻿#include "enable_tab.h"
 #include "ui_enable_tab.h"
-#include <iostream>
 
 ENABLE_tab::ENABLE_tab(QWidget* parent) :
 	QMainWindow(parent),
@@ -8,7 +7,6 @@ ENABLE_tab::ENABLE_tab(QWidget* parent) :
 {
 	ui->setupUi(this);
 	link_tab = qobject_cast<link_board*>(this->parent());
-    enable_value = 0;
 }
 
 ENABLE_tab::~ENABLE_tab()
@@ -16,31 +14,8 @@ ENABLE_tab::~ENABLE_tab()
 	delete ui;
 }
 
-
 void ENABLE_tab::on_cfg_btn_clicked() {
-
-    if (link_tab->serial == NULL || link_tab->serial->isOpen() == false) {
-        qDebug()<<"串口未打开";
-        return;
-    }
-    bool ok = false;
-    QString Baseaddr_str = ui->baseaddr->text();
-    BaseAddr = Baseaddr_str.toUInt(&ok, 16);         /////将字符串看作16进制读取
-    if (!ok) {
-        link_tab->set_echo_text("Error: Plese check BaseAddr ,and use Hex format!");
-        return;
-    }
-    ok = false;
-    QString offsetaddr_str = ui->offsetaddr->text();
-    OffsetAddr = static_cast<quint16>(offsetaddr_str.toUInt(&ok, 16));
-    if (!ok) {
-        link_tab->set_echo_text("Error: Plese check OffsetAddr ,and use Hex format!");
-        return;
-    }
-    ok = false;
-    enable_value = 0;
-    //enable_value |= DMS_MODULE_EN;
-    //enable_value |= STA_MODULE_EN;
+    uint32_t enable_value = 0;   //初始化为0
     if (ui->DMS_check->isChecked()) {
         enable_value |= DMS_MODULE_EN;
     }
@@ -62,8 +37,10 @@ void ENABLE_tab::on_cfg_btn_clicked() {
     if (ui->NR_RAW_check->isChecked()) {
         enable_value |= NR_RAW_MODULE_EN;
     }
-    if (ui->AWBC_check->isChecked()) {
+    if (ui->AWB_check->isChecked()) {
         enable_value |= AWB_MODULE_EN;
+    }
+    if(ui->WBC_check->isChecked()){
         enable_value |= WBC_MODULE_EN;
     }
     if (ui->GB_check->isChecked()) {
@@ -81,10 +58,22 @@ void ENABLE_tab::on_cfg_btn_clicked() {
     if (ui->NR_YUV_check->isChecked()){
         enable_value |= NR_YUV_MODULE_EN;
     }
-    QByteArray transdata;
-    QDataStream stream(&transdata, QIODevice::WriteOnly);   /////将数据导入到字节数组中
-    stream << BaseAddr << OffsetAddr << enable_value;
-    link_tab->Write_Data(transdata);        /////发送组合数据
+    uint8_t databuf[8];
+    uint32_t EN_ADDR = REG_MODULE_EN_ADDR;
+    uint32_t ISP_RST_ADDR = 0xA0030000;
+    uint32_t ISP_RST_VAL  = 0x00;
+    memcpy(databuf, &ISP_RST_ADDR, 4);
+    memcpy(databuf+4, &ISP_RST_VAL, 4);
+    link_tab->send_cmd_data(TEST_RW_CMD, databuf, 8);
+
+    memcpy(databuf, &EN_ADDR, 4);
+    memcpy(databuf+4, &enable_value, 4);
+    link_tab->send_cmd_data(TEST_RW_CMD, databuf, 8);   ////借用TEST_RW_CMD写一个寄存器
+
+    ISP_RST_VAL = 0x01;
+    memcpy(databuf, &ISP_RST_ADDR, 4);
+    memcpy(databuf+4, &ISP_RST_VAL, 4);
+    link_tab->send_cmd_data(TEST_RW_CMD, databuf, 8);
 
 }
 

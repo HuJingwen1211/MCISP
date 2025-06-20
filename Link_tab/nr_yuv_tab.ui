@@ -27,7 +27,7 @@
    <property name="geometry">
     <rect>
      <x>220</x>
-     <y>90</y>
+     <y>140</y>
      <width>151</width>
      <height>28</height>
     </rect>
@@ -37,7 +37,7 @@
    <property name="geometry">
     <rect>
      <x>220</x>
-     <y>140</y>
+     <y>90</y>
      <width>151</width>
      <height>28</height>
     </rect>
@@ -60,7 +60,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>90</y>
+     <y>140</y>
      <width>81</width>
      <height>19</height>
     </rect>
@@ -73,7 +73,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>140</y>
+     <y>90</y>
      <width>81</width>
      <height>20</height>
     </rect>
@@ -83,6 +83,9 @@
    </property>
   </widget>
   <widget class="QPushButton" name="nryuv_read_btn">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>110</x>

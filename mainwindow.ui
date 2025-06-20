@@ -3,7 +3,7 @@
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
   <property name="windowModality">
-   <enum>Qt::NonModal</enum>
+   <enum>Qt::WindowModality::NonModal</enum>
   </property>
   <property name="geometry">
    <rect>
@@ -23,7 +23,6 @@
    <font>
     <family>Times New Roman</family>
     <pointsize>12</pointsize>
-    <weight>75</weight>
     <bold>true</bold>
    </font>
   </property>
@@ -34,13 +33,16 @@
    <iconset resource="res.qrc">
     <normaloff>:/images/images/app.ico</normaloff>:/images/images/app.ico</iconset>
   </property>
+  <property name="windowOpacity">
+   <double>1.000000000000000</double>
+  </property>
   <property name="styleSheet">
    <string notr="true"/>
   </property>
   <property name="iconSize">
    <size>
-    <width>80</width>
-    <height>80</height>
+    <width>100</width>
+    <height>100</height>
    </size>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
@@ -60,7 +62,6 @@
      <font>
       <family>Times New Roman</family>
       <pointsize>10</pointsize>
-      <weight>50</weight>
       <bold>false</bold>
      </font>
     </property>
@@ -68,7 +69,7 @@
      <cursorShape>ArrowCursor</cursorShape>
     </property>
     <property name="tabShape">
-     <enum>QTabWidget::Rounded</enum>
+     <enum>QTabWidget::TabShape::Rounded</enum>
     </property>
     <property name="documentMode">
      <bool>false</bool>
@@ -95,7 +96,7 @@
      <x>0</x>
      <y>0</y>
      <width>1250</width>
-     <height>25</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -118,21 +119,6 @@
     <addaction name="separator"/>
     <addaction name="act_Exit"/>
    </widget>
-   <widget class="QMenu" name="menu_2">
-    <property name="font">
-     <font>
-      <family>Times New Roman</family>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="title">
-     <string>Convert </string>
-    </property>
-    <property name="toolTipsVisible">
-     <bool>true</bool>
-    </property>
-    <addaction name="act_DNG2RAW"/>
-   </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="tearOffEnabled">
      <bool>false</bool>
@@ -147,7 +133,7 @@
      <property name="title">
       <string>Contact  Us</string>
      </property>
-     <addaction name="action_Author_JAY"/>
+     <addaction name="actionauthor_YDJ"/>
     </widget>
     <addaction name="act_About"/>
     <addaction name="separator"/>
@@ -166,7 +152,6 @@
    </widget>
    <addaction name="menu"/>
    <addaction name="menuTheme"/>
-   <addaction name="menu_2"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="act_RAW_Tuning_Tool">
@@ -199,7 +184,7 @@
   </action>
   <action name="act_linkboard">
    <property name="text">
-    <string>Link  to  Board</string>
+    <string>Connect  to  Board</string>
    </property>
    <property name="toolTip">
     <string>硬件参数配置</string>
@@ -233,14 +218,13 @@
     <font>
      <family>Times New Roman</family>
      <pointsize>10</pointsize>
-     <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
   </action>
   <action name="act_About">
    <property name="text">
-    <string>About  ECUSTISP</string>
+    <string>About  MCISP</string>
    </property>
    <property name="font">
     <font>
@@ -266,7 +250,6 @@
    </property>
    <property name="font">
     <font>
-     <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
@@ -280,14 +263,13 @@
    </property>
    <property name="font">
     <font>
-     <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
   </action>
-  <action name="action_Author_JAY">
+  <action name="actionauthor_YDJ">
    <property name="text">
-    <string>Author : @JAY</string>
+    <string>author@YDJ</string>
    </property>
   </action>
  </widget>

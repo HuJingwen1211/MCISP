@@ -2,8 +2,16 @@
 
 #include <QWidget>
 #include "ui_ccm_tab.h"
-#include <QDataWidgetMapper>
 #include <QStandardItemModel>
+#include "link_board.h"
+
+
+#define REG_CCM_COEFF1_ADDR      0xA0000000 +  (0x18)
+#define REG_CCM_COEFF2_ADDR      0xA0000000 +  (0x1C)
+#define REG_CCM_COEFF3_ADDR      0xA0000000 +  (0x20)
+#define REG_CCM_COEFF4_ADDR      0xA0000000 +  (0x24)
+#define REG_CCM_COEFF5_ADDR      0xA0000000 +  (0x28)
+
 
 class CCM_tab : public QWidget
 {
@@ -19,6 +27,7 @@ private slots:
     void updateUIFromModel();
 
 private:
+    link_board *link_tab;
     QStandardItemModel *ccm_model;
     QList<QSpinBox*> spinBoxes;
 	Ui::CCM_tabClass ui;

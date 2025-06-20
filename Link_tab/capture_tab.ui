@@ -16,14 +16,30 @@
   <widget class="QPushButton" name="capture_btn">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>200</y>
+     <x>220</x>
+     <y>220</y>
      <width>181</width>
      <height>28</height>
     </rect>
    </property>
    <property name="text">
     <string>Capture Image</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>30</y>
+     <width>551</width>
+     <height>121</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>///该需求传输速度达不到要求：
+//4k图像image_size = 3840 * 2160 * 3 = 24883200字节
+//串口115200波特率传输需要 T= 24883200*8/115200 = 1728s = 28.8分钟
+//该需求在网口传输下才能满足需求，该通信协议可方便移植</string>
    </property>
   </widget>
  </widget>

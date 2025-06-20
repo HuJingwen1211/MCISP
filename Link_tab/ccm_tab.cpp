@@ -4,6 +4,7 @@ CCM_tab::CCM_tab(QWidget *parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
+    link_tab=qobject_cast<link_board*>(this->parent());
     ccm_model = new QStandardItemModel(3, 3, this);
     spinBoxes = {
         ui.ccm_a11, ui.ccm_a12, ui.ccm_a13,
@@ -32,19 +33,55 @@ CCM_tab::~CCM_tab()
 
 void CCM_tab::updateModelFromUI()
 {
+    disconnect(ccm_model, &QStandardItemModel::dataChanged, this, &CCM_tab::updateUIFromModel);
     for (int row = 0; row < 3; ++row) {
         for (int col = 0; col < 3; ++col) {
             int value = spinBoxes[row*3+col]->value();
             ccm_model->setData(ccm_model->index(row, col), value);
         }
     }
+    connect(ccm_model, &QStandardItemModel::dataChanged, this, &CCM_tab::updateUIFromModel);
 }
 
 void CCM_tab::on_ccm_write_btn_clicked()
 {
     updateModelFromUI();   ///先从界面拿到数据并更新到模型中
+    uint32_t ccm_a11 = ccm_model->data(ccm_model->index(0,0)).toUInt();
+    uint32_t ccm_a12 = ccm_model->data(ccm_model->index(0,1)).toUInt();
+    uint32_t ccm_a13 = ccm_model->data(ccm_model->index(0,2)).toUInt();
+    uint32_t ccm_a21 = ccm_model->data(ccm_model->index(1,0)).toUInt();
+    uint32_t ccm_a22 = ccm_model->data(ccm_model->index(1,1)).toUInt();
+    uint32_t ccm_a23 = ccm_model->data(ccm_model->index(1,2)).toUInt();
+    uint32_t ccm_a31 = ccm_model->data(ccm_model->index(2,0)).toUInt();
+    uint32_t ccm_a32 = ccm_model->data(ccm_model->index(2,1)).toUInt();
+    uint32_t ccm_a33 = ccm_model->data(ccm_model->index(2,2)).toUInt();
 
+    uint32_t CCM_REG1 = ((ccm_a12<<13) &  0x3FFFE000) | (ccm_a11 & 0x1FFF);
+    uint32_t CCM_REG2 = ((ccm_a21<<13) &  0x3FFFE000) | (ccm_a13 & 0x1FFF);
+    uint32_t CCM_REG3 = ((ccm_a23<<13) &  0x3FFFE000) | (ccm_a22 & 0x1FFF);
+    uint32_t CCM_REG4 = ((ccm_a32<<13) &  0x3FFFE000) | (ccm_a31 & 0x1FFF);
+    uint32_t CCM_REG5 = (ccm_a33 & 0x1FFF);
+
+    uint32_t CCM_ADDR1 = REG_CCM_COEFF1_ADDR;
+    uint32_t CCM_ADDR2 = REG_CCM_COEFF2_ADDR;
+    uint32_t CCM_ADDR3 = REG_CCM_COEFF3_ADDR;
+    uint32_t CCM_ADDR4 = REG_CCM_COEFF4_ADDR;
+    uint32_t CCM_ADDR5 = REG_CCM_COEFF5_ADDR;
+
+    qDebug()<<"write addr:"<<Qt::uppercasedigits << Qt::hex<<CCM_ADDR1<<" "<<CCM_ADDR2<<" "<<CCM_ADDR3<<" "<<CCM_ADDR4<<" "<<CCM_ADDR5;
+    qDebug()<<"write value:"<<Qt::uppercasedigits << Qt::hex<<CCM_REG1<<" "<<CCM_REG2<<" "<<CCM_REG3<<" "<<CCM_REG4<<" "<<CCM_REG5;
+
+
+    uint32_t CCM_DATA[10]={CCM_ADDR1,CCM_REG1,CCM_ADDR2,CCM_REG2,CCM_ADDR3,CCM_REG3,CCM_ADDR4,CCM_REG4,CCM_ADDR5,CCM_REG5};
+
+    uint8_t databuf[41];
+    databuf[0] = CCM_MODULE;    //模块标识
+    for(int i=0;i<10;i++){
+        memcpy(databuf+1+i*4,&CCM_DATA[i],4);
+    }
+    link_tab->send_cmd_data(WRITE_REG_CMD,databuf,41);
 }
+
 
 void CCM_tab::updateUIFromModel()
 {
@@ -57,6 +94,8 @@ void CCM_tab::updateUIFromModel()
         }
     }
 }
+
+
 
 
 

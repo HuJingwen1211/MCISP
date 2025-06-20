@@ -66,6 +66,10 @@ private slots:
 
     void on_btn_isp_run_clicked();
 
+    void on_size_combox_currentIndexChanged(int index);
+
+    void on_btn_imsave_clicked();
+
 signals:
     void finished();
 

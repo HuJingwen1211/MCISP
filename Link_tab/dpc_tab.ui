@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>该模块没有参数</string>
+     <string>该模块硬件没有参数接口</string>
     </property>
    </widget>
   </widget>

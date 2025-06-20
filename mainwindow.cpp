@@ -12,6 +12,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    setWindowTitle(tr("MCISP")); // 可被翻译
+    // setWindowIcon(QIcon(":/images/images/app.ico"));
+    // QPixmap iconPixmap(":/images/images/app.ico");
+    // QIcon scaledIcon(iconPixmap.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    // setWindowIcon(scaledIcon);
+
     Theme=new QActionGroup(this);
     Theme->addAction(ui->act_Dark_Theme);
     Theme->addAction(ui->act_Light_Theme);
@@ -22,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /////连接Theme Action触发信号与主题切换的操作的函数，参数传递为被触发的action指针
     QObject::connect(Theme, SIGNAL(triggered(QAction*)), this,SLOT(Theme_changed(QAction*)));
+
 }
 
 MainWindow::~MainWindow()
@@ -35,10 +42,23 @@ void MainWindow::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
     QPainter painter(this);
-    QImage image(":/images/images/ecust.png"); ///读取图像
-    QSize imageSize = image.size();
-    QSize scaledSize = imageSize.scaled(width(), height(), Qt::KeepAspectRatio);///缩放图像
-    QRect drawRect(QPoint(0, 100), scaledSize);  ///划分范围
+    // QImage image(":/images/images/ecust.png"); ///读取图像
+    QImage image(":/images/images/mc.png"); ///读取图像
+    // QSize imageSize = image.size();
+    // QSize scaledSize = imageSize.scaled(width(), height(), Qt::KeepAspectRatio);///缩放图像
+    // QRect drawRect(QPoint(0, 100), scaledSize);  ///划分范围
+    // painter.setOpacity(0.5);  ///设置透明度
+    // painter.drawImage(drawRect, image); ///绘制图像
+    // 计算缩放后的尺寸（保持宽高比）
+    QSize scaledSize = image.size().scaled(width(), height(), Qt::KeepAspectRatio);
+
+    // 计算居中位置
+    int x = (width() - scaledSize.width()) / 2;
+    int y = (height() - scaledSize.height()) / 2;
+
+    // 创建居中矩形
+    QRect drawRect(QPoint(x, y), scaledSize);
+
     painter.setOpacity(0.5);  ///设置透明度
     painter.drawImage(drawRect, image); ///绘制图像
 }

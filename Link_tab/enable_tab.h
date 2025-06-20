@@ -20,7 +20,8 @@
 #define NR_YUV_MODULE_EN          (1<<13)
 
 
-class link_board;
+#define REG_MODULE_EN_ADDR  0xA0000000
+
 
 namespace Ui {
     class ENABLE_tab;
@@ -41,7 +42,4 @@ public:
 private:
     Ui::ENABLE_tab *ui;
     link_board* link_tab;
-    quint32  BaseAddr;       ///4字节及基地址
-    quint16  OffsetAddr;     ///2字节偏移地址
-    qint32   enable_value;        ///4字节有符号值
 };

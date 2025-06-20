@@ -2,5 +2,6 @@
     <qresource prefix="/images">
         <file>images/ecust.png</file>
         <file>images/app.ico</file>
+        <file>images/mc.png</file>
     </qresource>
 </RCC>

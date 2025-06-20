@@ -15,6 +15,21 @@
 #define CAPTURE_CMD   0x05
 #define TEST_RW_CMD   0x06
 
+
+////各个模块的标识号
+#define DPC_MODULE     0x01
+#define BLC_MODULE     0x02
+#define LSC_MODULE     0x03
+#define NR_RAW_MODULE  0x04
+#define AWBC_MODULE    0x05
+#define GB_MODULE      0x06
+#define DMS_MODULE     0x07
+#define CCM_MODULE     0x08
+#define GAMMA_MODULE   0x09
+#define CSC_MODULE     0x0A
+#define NR_YUV_MODULE  0x0B
+
+
 namespace Ui {
 class link_board;
 }
@@ -28,6 +43,8 @@ signals:
     void imageReceived(const QByteArray &imageData);
     ////各个模块的signal
     void test_rw_signal(const QByteArray &regData);
+    void awbc_read_done(const QByteArray &regData);
+
 
 private:
     int Send(const uint8_t *data,uint16_t len);   //串口发送
@@ -56,14 +73,12 @@ private:
     ImageReception currentReception;
     QByteArray partialFrame;
 
+
 public:
     explicit link_board(QWidget *parent = 0);
     ~link_board();
     void send_cmd_data(uint8_t cmd,const uint8_t *datas,uint16_t len);   //封装命令数据并发送
-
-    void Read_Data();
-    int  Write_Data(QByteArray transdata);
-    void SendByte(char transdata);
+    void read_reg_process(const QByteArray &data);
 
 private slots:
     void handle_redy_read();
@@ -96,7 +111,7 @@ public:
     void YFC_DoubleClicked();
     void Debug_DoubleClicked();
     void Capture_DoubleClicked();
-    QSerialPort* serial;   ////串口对象
+    QSerialPort* serial = nullptr;   ////串口对象
 
 private:
     Ui::link_board *ui;

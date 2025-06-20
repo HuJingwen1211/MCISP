@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>596</width>
+    <height>407</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>AWB_tab</string>
   </property>
-  <widget class="QSpinBox" name="spinBox">
+  <widget class="QSpinBox" name="R_Gain">
    <property name="geometry">
     <rect>
      <x>240</x>
@@ -23,7 +23,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QSpinBox" name="spinBox_2">
+  <widget class="QSpinBox" name="G_Gain">
    <property name="geometry">
     <rect>
      <x>240</x>
@@ -33,7 +33,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QSpinBox" name="spinBox_3">
+  <widget class="QSpinBox" name="B_Gain">
    <property name="geometry">
     <rect>
      <x>240</x>
@@ -85,14 +85,40 @@
   <widget class="QPushButton" name="awb_read_btn">
    <property name="geometry">
     <rect>
-     <x>250</x>
-     <y>310</y>
+     <x>110</x>
+     <y>320</y>
      <width>141</width>
      <height>28</height>
     </rect>
    </property>
    <property name="text">
     <string>Read REG</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="awb_write_btn">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>320</y>
+     <width>151</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Write REG</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>20</y>
+     <width>231</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>注：Write时要将AWB_EN关闭</string>
    </property>
   </widget>
  </widget>

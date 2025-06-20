@@ -28,11 +28,9 @@ Tunning_Tab::~Tunning_Tab()    ///////释放动态指针所指向的内存空间
     if(isp){
         delete isp;
     }
-
 //    workerThread->quit();
 //    workerThread->wait();
 //    delete workerThread;
-
 }
 
 
@@ -740,7 +738,6 @@ void Tunning_Tab::Run_Pipeline()
    emit finished();    ////运行完成信号
 }
 
-
 ////////////////ISP Pipeline Run/////////////////
 void Tunning_Tab::on_btn_isp_run_clicked()
 {
@@ -754,7 +751,6 @@ void Tunning_Tab::on_btn_isp_run_clicked()
 //     });
 //    workerThread.start(); // 启动新线程
 
-
     QThread *workerThread = new QThread;    ////始终无法实现无阻塞
     //this->moveToThread(workerThread);
      //连接新线程的started信号到执行复杂算法的槽函数
@@ -767,5 +763,143 @@ void Tunning_Tab::on_btn_isp_run_clicked()
     workerThread->start();
 
     //Run_Pipeline();
+}
+
+void Tunning_Tab::on_size_combox_currentIndexChanged(int index)
+{
+    switch(index){
+    case 0:
+        ui->edit_imwidth->clear();
+        ui->edit_imheight->clear();
+        ui->edit_imwidth->setEnabled(true);
+        ui->edit_imheight->setEnabled(true);
+        break;
+    case 1:
+        ui->edit_imwidth->setText("640");
+        ui->edit_imheight->setText("480");
+        ui->edit_imwidth->setEnabled(false);
+        ui->edit_imheight->setEnabled(false);
+        break;
+    case 2:
+        ui->edit_imwidth->setText("832");
+        ui->edit_imheight->setText("480");
+        ui->edit_imwidth->setEnabled(false);
+        ui->edit_imheight->setEnabled(false);
+        break;
+    case 3:
+        ui->edit_imwidth->setText("720");
+        ui->edit_imheight->setText("576");
+        ui->edit_imwidth->setEnabled(false);
+        ui->edit_imheight->setEnabled(false);
+        break;
+    case 4:
+        ui->edit_imwidth->setText("1280");
+        ui->edit_imheight->setText("720");
+        ui->edit_imwidth->setEnabled(false);
+        ui->edit_imheight->setEnabled(false);
+        break;
+    case 5:
+        ui->edit_imwidth->setText("1920");
+        ui->edit_imheight->setText("1080");
+        ui->edit_imwidth->setEnabled(false);
+        ui->edit_imheight->setEnabled(false);
+        break;
+    case 6:
+        ui->edit_imwidth->setText("3840");
+        ui->edit_imheight->setText("2160");
+        ui->edit_imwidth->setEnabled(false);
+        ui->edit_imheight->setEnabled(false);
+        break;
+    case 7:
+        ui->edit_imwidth->setText("1024");
+        ui->edit_imheight->setText("768");
+        ui->edit_imwidth->setEnabled(false);
+        ui->edit_imheight->setEnabled(false);
+        break;
+    case 8:
+        ui->edit_imwidth->setText("1280");
+        ui->edit_imheight->setText("960");
+        ui->edit_imwidth->setEnabled(false);
+        ui->edit_imheight->setEnabled(false);
+        break;
+    default:break;
+    }
+}
+
+void Tunning_Tab::on_btn_imsave_clicked()
+{
+    if(!isp || !isp->isp_image->BAYER_DAT){
+        QMessageBox::critical(nullptr, "Error", "You just not open any file, and last open is cleaned, Please reselect raw file!");
+        //qDebug()<<"no file";
+        return;
+    }
+
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("选择图像格式");
+    msgBox.setText("请选择保存的图像格式：");
+    if(isp->current_pattern==BAYER){
+        msgBox.addButton("RAW", QMessageBox::AcceptRole);
+    }else if(isp->current_pattern==RGB){
+        msgBox.addButton("RAW", QMessageBox::AcceptRole);
+        msgBox.addButton("RGB", QMessageBox::AcceptRole);
+    }else if(isp->current_pattern==YUV444){
+        msgBox.addButton("RAW", QMessageBox::AcceptRole);
+        msgBox.addButton("RGB", QMessageBox::AcceptRole);
+        msgBox.addButton("YUV", QMessageBox::AcceptRole);
+    }
+
+    int ret = msgBox.exec();
+    QString format;
+    QString pre_name;
+    switch (ret) {
+    case 2: format = "RAW";pre_name="Images (*.raw)"; break;
+    case 3: format = "RGB";pre_name="Images (*.rgb)"; break;
+    case 4: format = "YUV";pre_name="Images (*.yuv)"; break;
+    default: return; // 用户取消
+    }
+
+    QString filePath = QFileDialog::getSaveFileName(this,"保存图像",QDir::homePath() + "/untitled", pre_name);
+
+    if (filePath.isEmpty()) {
+        return; // 用户取消保存
+    }
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly)) {
+        qDebug() << "无法打开文件：" << file.errorString();
+        return;
+    }
+    QDataStream stream(&file);
+    stream.setByteOrder(QDataStream::LittleEndian); // 统一为小端序（可选）
+    int size = isp->isp_image->pic_size;
+    // 保存图像
+    if(format =="RAW"){
+        u16 *raw_ptr = isp->isp_image->BAYER_DAT;
+        for (int i = 0; i < size; ++i) {
+            stream << raw_ptr[i]; // 逐个写入 uint16_t
+        }
+    }else if(format == "RGB"){
+        u16 *rgb_r = isp->isp_image->RGB_DAT[0];
+        u16 *rgb_g = isp->isp_image->RGB_DAT[1];
+        u16 *rgb_b = isp->isp_image->RGB_DAT[2];
+        for (int i = 0; i < size; ++i) {
+            stream << rgb_r[i]<<rgb_g[i]<<rgb_b[i]; // 逐个写入 uint16_t
+        }
+
+    }else if(format == "YUV"){
+        u16 *yuv_y = isp->isp_image->YUV_DAT[0];
+        u16 *yuv_u = isp->isp_image->YUV_DAT[1];
+        u16 *yuv_v = isp->isp_image->YUV_DAT[2];
+        for (int i = 0; i < size; ++i) {
+            stream << yuv_y[i]<<yuv_u[i]<<yuv_v[i]; // 逐个写入 uint16_t
+        }
+    }
+
+    if (stream.status() != QDataStream::Ok) {
+        QMessageBox::critical(this, "错误", "保存失败！");
+    } else {
+         QMessageBox::information(this, "成功", "图像已保存到"+filePath);
+    }
+    file.close();
 }
 

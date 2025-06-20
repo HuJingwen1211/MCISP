@@ -28,7 +28,7 @@ class RGB_Viewer : public QMainWindow
     int image_width;
     int image_height;
     int sensorbits;
-    QImage *rgb_image;
+    QImage *rgb_image=nullptr;
     My_GraphicsView *view;
 
 public:
@@ -41,6 +41,10 @@ public:
 
 private slots:
     void on_btn_open_clicked();
+
+    void on_size_combox_currentIndexChanged(int index);
+
+    void on_save_clicked();
 
 private:
     Ui::RGB_Viewer *ui;

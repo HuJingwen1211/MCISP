@@ -192,3 +192,98 @@ void YUV_Viewer::on_planar_check_toggled(bool checked)
     }
 }
 
+
+void YUV_Viewer::on_size_combox_currentIndexChanged(int index)
+{
+    switch(index){
+    case 0:
+        ui->imwidth->clear();
+        ui->imheight->clear();
+        ui->imwidth->setEnabled(true);
+        ui->imheight->setEnabled(true);
+        break;
+    case 1:
+        ui->imwidth->setText("640");
+        ui->imheight->setText("480");
+        ui->imwidth->setEnabled(false);
+        ui->imheight->setEnabled(false);
+        break;
+    case 2:
+        ui->imwidth->setText("832");
+        ui->imheight->setText("480");
+        ui->imwidth->setEnabled(false);
+        ui->imheight->setEnabled(false);
+        break;
+    case 3:
+        ui->imwidth->setText("720");
+        ui->imheight->setText("576");
+        ui->imwidth->setEnabled(false);
+        ui->imheight->setEnabled(false);
+        break;
+    case 4:
+        ui->imwidth->setText("1280");
+        ui->imheight->setText("720");
+        ui->imwidth->setEnabled(false);
+        ui->imheight->setEnabled(false);
+        break;
+    case 5:
+        ui->imwidth->setText("1920");
+        ui->imheight->setText("1080");
+        ui->imwidth->setEnabled(false);
+        ui->imheight->setEnabled(false);
+        break;
+    case 6:
+        ui->imwidth->setText("3840");
+        ui->imheight->setText("2160");
+        ui->imwidth->setEnabled(false);
+        ui->imheight->setEnabled(false);
+        break;
+    case 7:
+        ui->imwidth->setText("1024");
+        ui->imheight->setText("768");
+        ui->imwidth->setEnabled(false);
+        ui->imheight->setEnabled(false);
+        break;
+    case 8:
+        ui->imwidth->setText("1280");
+        ui->imheight->setText("960");
+        ui->imwidth->setEnabled(false);
+        ui->imheight->setEnabled(false);
+        break;
+    default:break;
+    }
+}
+
+
+void YUV_Viewer::on_save_clicked()
+{
+    // 首先检查图像是否有效
+    if (rgb_image && !rgb_image->isNull()) {
+        // 获取保存文件的路径
+        QString filePath = QFileDialog::getSaveFileName(
+            this,
+            tr("Save Image"),
+            QDir::homePath(),
+            tr("Images (*.png *.jpg *.jpeg *.bmp *.tif *.tiff)")
+            );
+
+        // 如果用户没有取消对话框
+        if (!filePath.isEmpty()) {
+            // 根据文件扩展名确定格式
+            QString extension = QFileInfo(filePath).suffix().toLower();
+
+            // 保存图像
+            bool saved = rgb_image->save(filePath, extension.toStdString().c_str());
+
+            if (!saved) {
+                QMessageBox::warning(this, tr("Error"), tr("Failed to save the image."));
+            }else{
+                QMessageBox::information(this, "成功", "图像已保存到"+filePath);
+            }
+        }
+    } else {
+        QMessageBox::warning(this, tr("Error"), tr("No image to save."));
+    }
+
+}
+

@@ -28,7 +28,7 @@ private:
     int image_width;
     int image_height;
     int sensorbits;
-    QImage *rgb_image;
+    QImage *rgb_image = nullptr;
     My_GraphicsView *view;
     bool isPacked;    //////1:packed   0:planar
     QString current_file_path;
@@ -47,6 +47,10 @@ private slots:
     void on_packed_check_toggled(bool checked);
 
     void on_planar_check_toggled(bool checked);
+
+    void on_size_combox_currentIndexChanged(int index);
+
+    void on_save_clicked();
 
 private:
     Ui::YUV_Viewer *ui;
