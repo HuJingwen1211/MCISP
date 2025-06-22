@@ -9,6 +9,7 @@
 #include <QDebug>
 #include <QObject>
 #include <QMessageBox>
+#include <QFile>
 
 #define FILE_NAME_MAX 511  ////文件名大小
 
@@ -38,8 +39,10 @@ typedef struct {
     int sensor_bits ;       // CIS's output pixel width
     int bayer_pattern;      // CIS's bayer pattern
 
-    char input_image_file[FILE_NAME_MAX];       // input image file name
-    char output_image_file[FILE_NAME_MAX];      // output image file name
+    // char input_image_file[FILE_NAME_MAX];       // input image file name
+    // char output_image_file[FILE_NAME_MAX];      // output image file name
+    QString input_image_file;
+    QString output_image_file;
 
     int yuv_10bit   ;       // if 1, output and store data of yuv in 10bits; if 0, it is 8bits
     int read_yuv_10bit   ;       // if 1, read data of yuv in 10bits; if 0, it is 8bits

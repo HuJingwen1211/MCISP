@@ -162,12 +162,20 @@ void set_pixel_value(const ISP_PARAM *isp_param, u16 *image, int row, int col, c
 /////////load image by type/////////////////////////////////////////////////////////
 int load_raw_image(ISP_PARAM *isp_param, ISP_IMAGE *image)
 {
-    FILE* image_file = fopen(isp_param->input_image_file, "rb");
-    if (!image_file) {
-        QMessageBox::critical(nullptr, "Error", "Can not open file!");
-        //qDebug("Err: load_image: file not found! (%s)\n", isp_param->input_image_file);
+    // FILE* image_file = fopen(isp_param->input_image_file, "rb");
+    // if (!image_file) {
+    //     QMessageBox::critical(nullptr, "Error", "Can not open file!");
+    //     //qDebug("Err: load_image: file not found! (%s)\n", isp_param->input_image_file);
+    //     return -1;
+    // }
+
+    QFile image_file(isp_param->input_image_file);
+    if (!image_file.open(QIODevice::ReadOnly)) {
+        QMessageBox::critical(nullptr, "Error", "Failed to open file!");
         return -1;
     }
+
+    qint64 fileSize = image_file.size();
 
     long expectedSize;
 
@@ -176,17 +184,13 @@ int load_raw_image(ISP_PARAM *isp_param, ISP_IMAGE *image)
     }else{
         expectedSize = isp_param->input_height*isp_param->input_width*2;
     }
-
-    // long expectedSize_16 = isp_param->input_height*isp_param->input_width*2;  ///输入RAW图像应有的字节数，每个像素2字节
-    fseek(image_file, 0, SEEK_END); // 定位到文件末尾
-    long fileSize = ftell(image_file); // 获取文件大小
-    fseek(image_file, 0, SEEK_SET); // 定位回文件开头
-
-
     if ( fileSize != expectedSize ){         //////判断读取的raw图像大小是否与输入的尺寸一致
         QMessageBox::critical(nullptr, "Error", "File size not match the width and height, pleasee check and retry!");
+        image_file.close();   //字节数不符合则关闭文件并退出
         return -1;
     }
+    QDataStream stream(&image_file);
+    stream.setByteOrder(QDataStream::LittleEndian); // 设置字节序（可选）
 
     //////打开文件和输入尺寸一致再申请动态内存空间
     image->BAYER_DAT=new u16[image->pic_size]();          /////init memory for raw image
@@ -202,17 +206,22 @@ int load_raw_image(ISP_PARAM *isp_param, ISP_IMAGE *image)
 
     /////如果一切无误则从该文件中读取数据
     if(isp_param->sensor_bits <= 8){
-        u8* raw8_data = new u8[image->pic_size]();
-        fread(raw8_data, sizeof(u8), static_cast<size_t>(image->pic_size), image_file);
+        // fread(raw8_data, sizeof(u8), static_cast<size_t>(image->pic_size), image_file);
         for (int i = 0; i < image->pic_size; i++) {
-             image->BAYER_DAT[i] = static_cast<u16>(raw8_data[i]);
+            uint8_t u8_val;
+            stream>>u8_val;
+            image->BAYER_DAT[i] = static_cast<u16>(u8_val);
         }
-        delete[] raw8_data;
     }else{
-        fread(image->BAYER_DAT, sizeof(u16), static_cast<size_t>(image->input_width*image->input_height) , image_file);
+        for (int i=0;i<image->pic_size;i++){
+            uint16_t u16_val;
+            stream>>u16_val;
+            image->BAYER_DAT[i] = u16_val;
+        }
+        // fread(image->BAYER_DAT, sizeof(u16), static_cast<size_t>(image->input_width*image->input_height) , image_file);
     }
-
-    fclose(image_file);
+    // fclose(image_file);
+    image_file.close();
     return 0;
 }
 

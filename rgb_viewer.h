@@ -37,6 +37,7 @@ public:
     void clear_last();
     int  load_rgb_iamge(QString filepath);
     void display_image();
+    qint64 getfilesize(QString filepath);
 
 
 private slots:

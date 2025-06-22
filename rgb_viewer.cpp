@@ -39,15 +39,18 @@ void RGB_Viewer::clear_last()   ////重新选择文件后清除上次申请的�
 
 int  RGB_Viewer::load_rgb_iamge(QString filepath)
 {
-    QByteArray byteArray = filepath.toUtf8();    ///////将QString类型的字符串转为const char*便于文件读入
-    const char* charArray = byteArray.constData();
-    FILE* image_file = fopen(charArray, "rb");
-    ////判断选择的文件是否能打开
-    if(!image_file){
-        QMessageBox::critical(nullptr, "Error", "Can not open file!");
-        //qDebug()<<"file not found";
-        return -1;
-    }
+    // QByteArray byteArray = filepath.toUtf8();         ///////将QString类型的字符串转为const char*便于文件读入
+    // const char* charArray = byteArray.constData();    ////此方法不支持中文路径,已经被废弃
+    // FILE* image_file = fopen(charArray, "rb");
+    // ////判断选择的文件是否能打开
+    // if(!image_file){
+    //     QMessageBox::critical(nullptr, "Error", "Can not open file!");
+    //     //qDebug()<<"file not found";
+    //     return -1;
+    // }
+
+    qint64 fileSize = getfilesize(filepath);
+
     long expectedSize;
     if(sensorbits <= 8){
         expectedSize = image_height*image_width*3;
@@ -55,13 +58,19 @@ int  RGB_Viewer::load_rgb_iamge(QString filepath)
         expectedSize = image_height*image_width*6;
     }
 
-    fseek(image_file, 0, SEEK_END); // 定位到文件末尾
-    long fileSize = ftell(image_file); // 获取文件大小
-    fseek(image_file, 0, SEEK_SET); // 定位回文件开头
     if (fileSize != expectedSize){
         QMessageBox::critical(nullptr, "Error", "File size or sensorbits not match the width and height,pleasee check and retry!");
         return -1;
     }
+
+    QFile file(filepath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::critical(nullptr, "Error", "Failed to open file!");
+        return -1;
+    }
+
+    QDataStream stream(&file);
+    stream.setByteOrder(QDataStream::LittleEndian); // 设置字节序（可选）
 
     /////初始化指针指向的内存空间
     rgb_data[R]=new u16[image_width*image_height]();
@@ -73,17 +82,18 @@ int  RGB_Viewer::load_rgb_iamge(QString filepath)
             for(int i=0;i<3;i++){
                 if(sensorbits <= 8 ){
                     u8 val_u8=0;
-                    fread(&val_u8, sizeof(u8), 1, image_file); ///读取数据
+                    // fread(&val_u8, sizeof(u8), 1, image_file); ///读取数据
+                    stream >> val_u8;
                     rgb_data[i][row*image_width+col]=static_cast<u16>(val_u8); ///导入数据
                 }else{
-                    fread(&read_val, sizeof(u16), 1, image_file); ///读取数据
+                    // fread(&read_val, sizeof(u16), 1, image_file); ///读取数据
+                    stream >> read_val;
                     rgb_data[i][row*image_width+col]=read_val; ///导入数据
                 }
             }
         }
     }
-    fclose(image_file);
-
+    file.close();
     return 0;   ////如果一切正常则返回0
 }
 
@@ -107,9 +117,25 @@ void RGB_Viewer::display_image()
     layout->addWidget(view);
 }
 
+qint64 RGB_Viewer::getfilesize(QString filepath)
+{
+    QFile file(filepath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::critical(nullptr, "Error", "Failed to open file!");
+        return -1;
+    }
+    file.close();
+
+    return file.size();  // 获取文件大小（字节数）
+}
+
 
 void RGB_Viewer::on_btn_open_clicked()
 {
+    if(ui->imwidth->text() == nullptr || ui->imheight->text() == nullptr){
+        QMessageBox::information(nullptr, "INFO", "Please configure the image size first!!!");
+        return;
+    }
     clear_last();     /////打开之前先清理一遍
     //////导入RGB参数
     image_width=ui->imwidth->text().toInt();

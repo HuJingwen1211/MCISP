@@ -498,9 +498,23 @@ void link_board::ENABLE_DoubleClicked()
     if (!is_exist) {
         ENABLE_tab* tab = new ENABLE_tab(this);
         tab->setAttribute(Qt::WA_DeleteOnClose);
+        // tab->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         int cur = ui->link_tab->addTab(tab, QString::asprintf(" ENABLE "));
         ui->link_tab->setCurrentIndex(cur);
         ui->link_tab->setVisible(true);
+        // ENABLE_tab* tab = new ENABLE_tab(this);
+        // tab->setAttribute(Qt::WA_DeleteOnClose);
+
+        // // 创建一个容器 widget 并设置布局
+        // QWidget *container = new QWidget();
+        // QHBoxLayout *layout = new QHBoxLayout(container);
+        // layout->addWidget(tab, 0, Qt::AlignCenter); // 居中
+        // container->setLayout(layout);
+
+        // // 添加到 link_tab
+        // int cur = ui->link_tab->addTab(container, QString::asprintf(" ENABLE "));
+        // ui->link_tab->setCurrentIndex(cur);
+        // ui->link_tab->setVisible(true);
     }
 }
 

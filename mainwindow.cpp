@@ -6,6 +6,7 @@
 #include "link_board.h"
 #include <QPainter>
 #include <QActionGroup>
+#include <QLabel>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -13,10 +14,12 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowTitle(tr("MCISP")); // 可被翻译
-    // setWindowIcon(QIcon(":/images/images/app.ico"));
-    // QPixmap iconPixmap(":/images/images/app.ico");
-    // QIcon scaledIcon(iconPixmap.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    // setWindowIcon(scaledIcon);
+    setStyleSheet(
+        "QWidget {"
+        "   font-size: 14px;"  // 可能影响标题栏字体（取决于系统）
+        "}"
+    );
+
 
     Theme=new QActionGroup(this);
     Theme->addAction(ui->act_Dark_Theme);
@@ -28,6 +31,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /////连接Theme Action触发信号与主题切换的操作的函数，参数传递为被触发的action指针
     QObject::connect(Theme, SIGNAL(triggered(QAction*)), this,SLOT(Theme_changed(QAction*)));
+    ui->Tab_MainWindow->setStyleSheet(
+        "QTabBar::tab {"
+        "   font-weight: bold;"
+        "   font-size: 14px;"  // 设置字号为 14px
+        "   padding: 4px;"     // 可选：调整内边距
+        "}"
+    );
 
 }
 
@@ -159,7 +169,7 @@ void MainWindow::on_act_linkboard_triggered()
     if(!is_exist){      ////如果不存在该类型的tab才新建一个
         link_board *tab=new link_board(this);
         tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur=ui->Tab_MainWindow->addTab(tab,QString::asprintf("Link to Board"));
+        int cur=ui->Tab_MainWindow->addTab(tab,QString::asprintf("Connect to Board"));
         ui->Tab_MainWindow->setCurrentIndex(cur);
         ui->Tab_MainWindow->setVisible(true);
     }

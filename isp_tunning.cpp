@@ -129,6 +129,9 @@ void Tunning_Tab::init_raw_image()
     isp->isp_cfg_reg->sensor_bits=ui->spin_sensorbits->value();         /////sensor_bits
     isp->isp_cfg_reg->bayer_pattern=ui->combx_impattern->currentIndex();/////Bayer Pattern
     isp->isp_image->pic_size=isp->isp_image->input_width * isp->isp_image->input_height;  ///raw image size
+    isp->isp_cfg_reg->input_image_file = nullptr;
+    isp->isp_cfg_reg->output_image_file=nullptr;
+    isp->current_pattern=BAYER;
 }
 
 
@@ -218,7 +221,11 @@ void Tunning_Tab::on_btn_raw_open_clicked()
         isp->clear_data();
         init_modules_reg();
         pipeline_check_reset();    ///重新打开后重置复选框
+    }
 
+    if(ui->edit_imwidth->text() == nullptr || ui->edit_imheight->text() == nullptr){
+        QMessageBox::information(nullptr, "INFO", "Please configure the image size first!!!");
+        return;
     }
 
     init_raw_image();      ////初始化raw图像长宽、尺寸、后面判断读入文件大小和输入尺寸一致后再申请内存空间
@@ -235,12 +242,15 @@ void Tunning_Tab::on_btn_raw_open_clicked()
         return;
     }
 
-    /////将QString转换为字符数组指针类型
-    QByteArray byteArray = file_name.toUtf8();  ////结尾有/0
-//    for (int i = 0; i < sizeof(isp->isp_cfg_reg->input_image_file); i++) {
-//        isp->isp_cfg_reg->input_image_file[i] = 0;
-//    }
-    strncpy(isp->isp_cfg_reg->input_image_file,byteArray.constData(),FILE_NAME_MAX);  ///image name
+//     /////将QString转换为字符数组指针类型                              ///////该种方式不支持中文路径读取，废弃
+//     QByteArray byteArray = file_name.toUtf8();  ////结尾有/0
+// //    for (int i = 0; i < sizeof(isp->isp_cfg_reg->input_image_file); i++) {
+// //        isp->isp_cfg_reg->input_image_file[i] = 0;
+// //    }
+//     strncpy(isp->isp_cfg_reg->input_image_file,byteArray.constData(),FILE_NAME_MAX);  ///image name
+
+    isp->isp_cfg_reg->input_image_file = file_name;   ///保存为QString
+
     ///////将raw数据导入到指针指向的地址
     int isOk=load_raw_image(isp->isp_cfg_reg,isp->isp_image);
     if(isOk!=0){    ////load失败则返回，不进行接下来的操作
@@ -273,7 +283,7 @@ void Tunning_Tab::on_btn_update_clicked()
     pipeline_check_reset();
     isp->isp_cfg_reg->sensor_bits=ui->spin_sensorbits->value();
     isp->isp_cfg_reg->bayer_pattern=ui->combx_impattern->currentIndex();     ////0:rggb 1:grbg 2:gbrg 3:bggr
-    raw2clor(isp->isp_image->BAYER_DAT);////将填充raw另外两个通道为0，用于彩色显示
+    raw2clor(isp->isp_image->BAYER_DAT);  ////将填充raw另外两个通道为0，用于彩色显示
     view->SetImage(*isp->raw_clor_image); ////更新视图中的图片
 }
 
@@ -836,25 +846,37 @@ void Tunning_Tab::on_btn_imsave_clicked()
 
     QMessageBox msgBox(this);
     msgBox.setWindowTitle("选择图像格式");
-    msgBox.setText("请选择保存的图像格式：");
+    msgBox.setText("请选择保存的图像格式(默认双字节保存)：");
+    QPushButton *rawButton = msgBox.addButton("RAW", QMessageBox::AcceptRole);
+    QPushButton *rgbButton = msgBox.addButton("RGB", QMessageBox::AcceptRole);
+    QPushButton *yuvButton = msgBox.addButton("YUV", QMessageBox::AcceptRole);
+    QPushButton *cancelButton =msgBox.addButton("Cancel", QMessageBox::RejectRole);
+
     if(isp->current_pattern==BAYER){
-        msgBox.addButton("RAW", QMessageBox::AcceptRole);
+        // msgBox.addButton("RAW", QMessageBox::AcceptRole);
+        rgbButton->setEnabled(false);
+        yuvButton->setEnabled(false);
     }else if(isp->current_pattern==RGB){
-        msgBox.addButton("RAW", QMessageBox::AcceptRole);
-        msgBox.addButton("RGB", QMessageBox::AcceptRole);
+        // msgBox.addButton("RAW", QMessageBox::AcceptRole);
+        // msgBox.addButton("RGB", QMessageBox::AcceptRole);
+        yuvButton->setEnabled(false);
     }else if(isp->current_pattern==YUV444){
-        msgBox.addButton("RAW", QMessageBox::AcceptRole);
-        msgBox.addButton("RGB", QMessageBox::AcceptRole);
-        msgBox.addButton("YUV", QMessageBox::AcceptRole);
+        // msgBox.addButton("RAW", QMessageBox::AcceptRole);
+        // msgBox.addButton("RGB", QMessageBox::AcceptRole);
+        // msgBox.addButton("YUV", QMessageBox::AcceptRole);
     }
 
     int ret = msgBox.exec();
+    if(ret == 3){
+        return;      ///用户取消则返回
+    }
     QString format;
     QString pre_name;
+    qDebug()<<ret;
     switch (ret) {
-    case 2: format = "RAW";pre_name="Images (*.raw)"; break;
-    case 3: format = "RGB";pre_name="Images (*.rgb)"; break;
-    case 4: format = "YUV";pre_name="Images (*.yuv)"; break;
+    case 0: format = "RAW";pre_name="Images (*.raw)"; break;
+    case 1: format = "RGB";pre_name="Images (*.rgb)"; break;
+    case 2: format = "YUV";pre_name="Images (*.yuv)"; break;
     default: return; // 用户取消
     }
 

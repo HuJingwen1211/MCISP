@@ -45,7 +45,6 @@
       <font>
        <family>Times New Roman</family>
        <pointsize>12</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -79,7 +78,6 @@
       <font>
        <family>Times New Roman</family>
        <pointsize>12</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -107,7 +105,6 @@
       <font>
        <family>Times New Roman</family>
        <pointsize>9</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -115,178 +112,25 @@
       <string>Configure  CCM  Matrix</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="7" column="4">
-       <widget class="QSpinBox" name="ccm_coeff7">
-        <property name="font">
-         <font>
-          <family>Times New Roman</family>
-          <pointsize>12</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
+      <item row="9" column="0" colspan="6">
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
         </property>
-        <property name="minimum">
-         <number>-5000</number>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
         </property>
-        <property name="maximum">
-         <number>5000</number>
-        </property>
-        <property name="value">
-         <number>0</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="ccm_coeff0">
-        <property name="font">
-         <font>
-          <family>Times New Roman</family>
-          <pointsize>12</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="minimum">
-         <number>-5000</number>
-        </property>
-        <property name="maximum">
-         <number>5000</number>
-        </property>
-        <property name="value">
-         <number>1024</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label">
-        <property name="font">
-         <font>
-          <family>Times New Roman</family>
-          <pointsize>12</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>ccm_coeff[0]:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3">
-       <widget class="QLabel" name="label_2">
-        <property name="font">
-         <font>
-          <family>Times New Roman</family>
-          <pointsize>12</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>ccm_coeff[1]:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="11" column="0">
-       <widget class="QLabel" name="label_10">
-        <property name="font">
-         <font>
-          <family>Times New Roman</family>
-          <pointsize>12</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>offset_out[0]:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QSpinBox" name="ccm_coeff3">
-        <property name="font">
-         <font>
-          <family>Times New Roman</family>
-          <pointsize>12</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="minimum">
-         <number>-5000</number>
-        </property>
-        <property name="maximum">
-         <number>5000</number>
-        </property>
-        <property name="value">
-         <number>0</number>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="7">
-       <widget class="QSpinBox" name="ccm_coeff5">
-        <property name="font">
-         <font>
-          <family>Times New Roman</family>
-          <pointsize>12</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="minimum">
-         <number>-5000</number>
-        </property>
-        <property name="maximum">
-         <number>5000</number>
-        </property>
-        <property name="value">
-         <number>0</number>
-        </property>
-       </widget>
+       </spacer>
       </item>
       <item row="1" column="4">
-       <widget class="QSpinBox" name="ccm_coeff1">
-        <property name="font">
-         <font>
-          <family>Times New Roman</family>
-          <pointsize>12</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="minimum">
-         <number>-5000</number>
-        </property>
-        <property name="maximum">
-         <number>5000</number>
-        </property>
-        <property name="value">
-         <number>0</number>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="font">
-         <font>
-          <family>Times New Roman</family>
-          <pointsize>12</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>ccm_coeff[3]:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="6">
        <widget class="QLabel" name="label_3">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -295,28 +139,32 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="3">
-       <widget class="QLabel" name="label_5">
+      <item row="4" column="5">
+       <widget class="QSpinBox" name="ccm_coeff5">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
-        <property name="text">
-         <string>ccm_coeff[4]:</string>
+        <property name="minimum">
+         <number>-5000</number>
+        </property>
+        <property name="maximum">
+         <number>5000</number>
+        </property>
+        <property name="value">
+         <number>0</number>
         </property>
        </widget>
       </item>
-      <item row="1" column="7">
-       <widget class="QSpinBox" name="ccm_coeff2">
+      <item row="11" column="5">
+       <widget class="QSpinBox" name="offset_out2">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -332,33 +180,39 @@
        </widget>
       </item>
       <item row="11" column="4">
-       <widget class="QSpinBox" name="offset_out1">
+       <widget class="QLabel" name="label_12">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
-        <property name="minimum">
-         <number>-5000</number>
-        </property>
-        <property name="maximum">
-         <number>5000</number>
-        </property>
-        <property name="value">
-         <number>0</number>
+        <property name="text">
+         <string>offset_out[2]:</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="4">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_13">
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>9</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>ccm_coeff</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
        <widget class="QSpinBox" name="ccm_coeff4">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -373,28 +227,67 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="6">
-       <widget class="QLabel" name="label_6">
+      <item row="10" column="0">
+       <widget class="QLabel" name="label_14">
+        <property name="text">
+         <string>offset_out</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="5">
+       <widget class="QSpinBox" name="ccm_coeff8">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="minimum">
+         <number>-5000</number>
+        </property>
+        <property name="maximum">
+         <number>5000</number>
+        </property>
+        <property name="value">
+         <number>1024</number>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>12</pointsize>
           <bold>true</bold>
          </font>
         </property>
         <property name="text">
-         <string>ccm_coeff[5]:</string>
+         <string>offset_out[0]:</string>
         </property>
        </widget>
       </item>
-      <item row="11" column="7">
-       <widget class="QSpinBox" name="offset_out2">
+      <item row="4" column="2">
+       <widget class="QLabel" name="label_5">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>ccm_coeff[4]:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
+       <widget class="QSpinBox" name="ccm_coeff2">
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>12</pointsize>
           <bold>true</bold>
          </font>
         </property>
@@ -409,33 +302,37 @@
         </property>
        </widget>
       </item>
-      <item row="11" column="6">
-       <widget class="QLabel" name="label_12">
+      <item row="1" column="2">
+       <widget class="QLabel" name="label_2">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
         <property name="text">
-         <string>offset_out[2]:</string>
+         <string>ccm_coeff[1]:</string>
         </property>
        </widget>
       </item>
-      <item row="11" column="3">
-       <widget class="QLabel" name="label_11">
+      <item row="4" column="1">
+       <widget class="QSpinBox" name="ccm_coeff3">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
-        <property name="text">
-         <string>offset_out[1]:</string>
+        <property name="minimum">
+         <number>-5000</number>
+        </property>
+        <property name="maximum">
+         <number>5000</number>
+        </property>
+        <property name="value">
+         <number>0</number>
         </property>
        </widget>
       </item>
@@ -445,7 +342,6 @@
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -466,7 +362,6 @@
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -475,13 +370,26 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="1">
-       <widget class="QSpinBox" name="ccm_coeff6">
+      <item row="7" column="4">
+       <widget class="QLabel" name="label_9">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>ccm_coeff[8]:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="3">
+       <widget class="QSpinBox" name="offset_out1">
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>12</pointsize>
           <bold>true</bold>
          </font>
         </property>
@@ -496,73 +404,52 @@
         </property>
        </widget>
       </item>
-      <item row="9" column="0" colspan="8">
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="10" column="0">
-       <widget class="QLabel" name="label_14">
-        <property name="text">
-         <string>offset_out</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="2">
-       <spacer name="horizontalSpacer_4">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="7" column="6">
-       <widget class="QLabel" name="label_9">
+      <item row="7" column="1">
+       <widget class="QSpinBox" name="ccm_coeff6">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
-        <property name="text">
-         <string>ccm_coeff[8]:</string>
+        <property name="minimum">
+         <number>-5000</number>
         </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_13">
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
+        <property name="maximum">
+         <number>5000</number>
         </property>
-        <property name="text">
-         <string>ccm_coeff</string>
+        <property name="value">
+         <number>0</number>
         </property>
        </widget>
       </item>
       <item row="7" column="3">
+       <widget class="QSpinBox" name="ccm_coeff7">
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>12</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="minimum">
+         <number>-5000</number>
+        </property>
+        <property name="maximum">
+         <number>5000</number>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="2">
        <widget class="QLabel" name="label_8">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -571,13 +458,26 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="7">
-       <widget class="QSpinBox" name="ccm_coeff8">
+      <item row="11" column="2">
+       <widget class="QLabel" name="label_11">
         <property name="font">
          <font>
           <family>Times New Roman</family>
           <pointsize>12</pointsize>
-          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>offset_out[1]:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="ccm_coeff0">
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>12</pointsize>
           <bold>true</bold>
          </font>
         </property>
@@ -592,18 +492,67 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="5">
-       <spacer name="horizontalSpacer_5">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>12</pointsize>
+          <bold>true</bold>
+         </font>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
+        <property name="text">
+         <string>ccm_coeff[3]:</string>
         </property>
-       </spacer>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QSpinBox" name="ccm_coeff1">
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>12</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="minimum">
+         <number>-5000</number>
+        </property>
+        <property name="maximum">
+         <number>5000</number>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="4">
+       <widget class="QLabel" name="label_6">
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>12</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>ccm_coeff[5]:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <family>Times New Roman</family>
+          <pointsize>12</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>ccm_coeff[0]:</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
