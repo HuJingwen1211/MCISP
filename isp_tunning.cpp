@@ -188,7 +188,7 @@ void Tunning_Tab::rgb2view(u16 *RGB_DATA[])
 void Tunning_Tab::yuv2view(u16 *YUV_DATA[])
 {
     ////int offset=isp->isp_cfg_reg->sensor_bits-8;
-    int offset=2;    //////YUV输入是10bit的数据
+    int offset=isp->isp_cfg_reg->sensor_bits-8;
     for(int row=0;row<isp->isp_cfg_reg->input_height;row++){
         for(int col=0;col<isp->isp_cfg_reg->input_width;col++){
             int pixel_pos=row*isp->isp_cfg_reg->input_width+col;////像素位置
@@ -748,6 +748,54 @@ void Tunning_Tab::Run_Pipeline()
    emit finished();    ////运行完成信号
 }
 
+int Tunning_Tab::open_with_click_init(QString filepath, int width, int height, int sensorbits, int bayerpattern)
+{
+    if(width==0 || height==0){
+        QMessageBox::critical(nullptr, "ERROR", "Please Set Image size first !!!");
+        return false;
+    }
+    isp->isp_cfg_reg->input_width =width;
+    isp->isp_image->input_width = width;
+    isp->isp_cfg_reg->input_height=height;
+    isp->isp_image->input_height = height;
+    isp->isp_cfg_reg->sensor_bits = sensorbits;
+    isp->isp_cfg_reg->bayer_pattern = bayerpattern;
+    isp->isp_image->pic_size = width*height;
+    isp->isp_cfg_reg->input_image_file =  filepath;
+    isp->isp_cfg_reg->output_image_file = nullptr;
+    isp->current_pattern = BAYER;
+
+    ///////将raw数据导入到指针指向的地址
+    int isOk=load_raw_image(isp->isp_cfg_reg,isp->isp_image);
+    if(isOk!=0){    ////load失败则返回，不进行接下来的操作
+        return -1;
+    }
+    ui->image_preview_box->setTitle("raw image preview: "+ filepath);   ///显示文件路径
+    ////创建用于显示的图像，需要将BAYER数据的另外两个通道补0;
+    isp->raw_clor_image=new QImage(isp->isp_image->input_width, isp->isp_image->input_height, QImage::Format_RGB888);
+    isp->rgb_color_image=new QImage(isp->isp_image->input_width, isp->isp_image->input_height, QImage::Format_RGB888);
+
+    if ((*isp->raw_clor_image).isNull()) {
+        QMessageBox::critical(nullptr, "Error", "Failed to create image!");
+        //qDebug() << "Failed to create image!";
+        return -1;
+    }
+    //qDebug("creat QImage Successfully!!!");
+    raw2clor(isp->isp_image->BAYER_DAT);           ////将填充raw另外两个通道为0，用于彩色显示
+    view->SetImage(*isp->raw_clor_image);          ////将Qimage对象传入view
+    QGridLayout *layout=ui->preview_layout;        //////获取image_preview_box下的layout
+    layout->addWidget(view);                       ////在layout添加view
+
+    ui->edit_imwidth->setText(QString::number(width));
+    ui->edit_imheight->setText(QString::number(height));
+    ui->spin_sensorbits->setValue(sensorbits);
+    ui->combx_impattern->setCurrentIndex(bayerpattern);
+
+
+
+    return 0;
+}
+
 ////////////////ISP Pipeline Run/////////////////
 void Tunning_Tab::on_btn_isp_run_clicked()
 {
@@ -867,18 +915,33 @@ void Tunning_Tab::on_btn_imsave_clicked()
     }
 
     int ret = msgBox.exec();
-    if(ret == 3){
-        return;      ///用户取消则返回
-    }
+    // if(ret == 3){
+    //     return;      ///用户取消则返回
+    // }
+
     QString format;
     QString pre_name;
-    qDebug()<<ret;
-    switch (ret) {
-    case 0: format = "RAW";pre_name="Images (*.raw)"; break;
-    case 1: format = "RGB";pre_name="Images (*.rgb)"; break;
-    case 2: format = "YUV";pre_name="Images (*.yuv)"; break;
-    default: return; // 用户取消
+    QAbstractButton *clickedButton = msgBox.clickedButton();
+    if (clickedButton == rawButton) {
+        // 处理RAW按钮点击
+        format = "RAW";pre_name="Images (*.raw)";
+    } else if (clickedButton == rgbButton) {
+        // 处理RGB按钮点击
+        format = "RGB";pre_name="Images (*.rgb)";
+    } else if (clickedButton == yuvButton) {
+        // 处理YUV按钮点击
+        format = "YUV";pre_name="Images (*.yuv)";
+    } else {
+        // 取消或其他情况
+        return;
     }
+    // qDebug()<<ret;      ///通过执行返回值方式在不同电脑下会由问题
+    // switch (ret) {
+    // case 0: format = "RAW";pre_name="Images (*.raw)"; break;
+    // case 1: format = "RGB";pre_name="Images (*.rgb)"; break;
+    // case 2: format = "YUV";pre_name="Images (*.yuv)"; break;
+    // default: return; // 用户取消
+    // }
 
     QString filePath = QFileDialog::getSaveFileName(this,"保存图像",QDir::homePath() + "/untitled", pre_name);
 
@@ -896,7 +959,7 @@ void Tunning_Tab::on_btn_imsave_clicked()
     int size = isp->isp_image->pic_size;
     // 保存图像
     if(format =="RAW"){
-        u16 *raw_ptr = isp->isp_image->BAYER_DAT;
+        u16 *raw_ptr = isp->isp_image->current_BAYER_DAT;   ///注意是current Bayer Data
         for (int i = 0; i < size; ++i) {
             stream << raw_ptr[i]; // 逐个写入 uint16_t
         }

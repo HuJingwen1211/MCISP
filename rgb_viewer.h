@@ -38,6 +38,7 @@ public:
     int  load_rgb_iamge(QString filepath);
     void display_image();
     qint64 getfilesize(QString filepath);
+    int open_with_click_init(QString filepath,int width,int height,int sensorbits);
 
 
 private slots:

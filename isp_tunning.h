@@ -56,6 +56,7 @@ public:////////Module Clicked
     void Item_check2reg();   ////运行前将用户的选择写入寄存器
     void pipeline_check_reset();
     void Run_Pipeline();
+    int  open_with_click_init(QString filepath,int width,int height,int sensorbits,int bayerpattern);
 
 private slots:
     void on_btn_raw_open_clicked();  ////打开raw图片

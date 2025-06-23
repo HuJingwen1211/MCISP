@@ -185,7 +185,7 @@ int load_raw_image(ISP_PARAM *isp_param, ISP_IMAGE *image)
         expectedSize = isp_param->input_height*isp_param->input_width*2;
     }
     if ( fileSize != expectedSize ){         //////判断读取的raw图像大小是否与输入的尺寸一致
-        QMessageBox::critical(nullptr, "Error", "File size not match the width and height, pleasee check and retry!");
+        QMessageBox::critical(nullptr, "Error", "File size not match the width and height, please check and retry!");
         image_file.close();   //字节数不符合则关闭文件并退出
         return -1;
     }
@@ -1541,8 +1541,11 @@ void csc(ISP_IMAGE *isp_image,csc_reg_t *csc_cfg_reg,const ISP_PARAM *isp_param)
                 // the coeff is quantized to 8 bits
                 temp_0  =   pix_rgb[0] * csc_cfg_reg->coeff[3*i] + pix_rgb[1] * csc_cfg_reg->coeff[3*i+1] + pix_rgb[2] * csc_cfg_reg->coeff[3*i+2];
                 temp_1  =   ((temp_0+128)>> 8) + csc_cfg_reg->offset_out[i];  /////coeff是8位的
-                pix_yuv[i]  =clip_to_sensorbits(10,temp_1);///钳位到[0,1023]
-                isp_image->YUV_DAT[i][pixel_pos] = pix_yuv[i];  // output is 10 bits
+                pix_yuv[i]  =clip_to_sensorbits(10,temp_1);       ///钳位到[0,1023]
+                ///在10bit位宽下转换后转回原位宽
+                uint16_t origin_bityuv = sensor_bits>10? pix_yuv[i]<<(sensor_bits-10) : pix_yuv[i]>>(10-sensor_bits);
+                // isp_image->YUV_DAT[i][pixel_pos] = pix_yuv[i];    // output is 10 bits
+                isp_image->YUV_DAT[i][pixel_pos] = origin_bityuv;
             }
         }
     }

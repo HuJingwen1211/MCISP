@@ -48,6 +48,8 @@ YUV_Viewer::~YUV_Viewer()
     clear_last();
 }
 
+
+
 void YUV_Viewer::clear_last()
 {
     if(rgb_image){
@@ -114,10 +116,13 @@ int YUV_Viewer::readYUV444(QString filepath,qint64 filesize, qint64 pixelsize)
     }
     if(filesize == pixelsize *3){ ///单字节读取
         if(sensorbits > 8){
-            QMessageBox::critical(nullptr, "Error", "Error Check sensorbits or file,file size not match sensorbits!");
-            SAFE_FREE(YUVData);
-            file.close();
-            return -2;
+            // QMessageBox::critical(nullptr, "Error", "Error Check sensorbits or file,file size not match sensorbits!");
+            // SAFE_FREE(YUVData);
+            // file.close();
+            // return -2;
+            QMessageBox::information(nullptr, "INFO", "The file is auto detect sensorbits = 8 !!!");
+            sensorbits = 8;
+            ui->spin_bit->setValue(8);
         }
         QDataStream stream(&file);
         stream.setByteOrder(QDataStream::LittleEndian); // 设置字节序（可选）
@@ -152,7 +157,7 @@ int YUV_Viewer::readYUV444(QString filepath,qint64 filesize, qint64 pixelsize)
         }
     }else{    ///双字节读取
         if(sensorbits <= 8){
-            QMessageBox::information(nullptr, "INFO", "sensorbit cconfigured <=8,but file is 2 byte per pixel component!!!");
+            QMessageBox::information(nullptr, "INFO", "sensorbit configured =8,but file is 2 byte per pixel component!!!");
         }
         QDataStream stream(&file);
         stream.setByteOrder(QDataStream::LittleEndian); // 设置字节序（可选）
@@ -199,11 +204,16 @@ int YUV_Viewer::readYUV422(QString filepath,qint64 filesize, qint64 pixelsize)
         return -1;
     }
     if(filesize == pixelsize*2){   //单字节读取
+        // if(sensorbits > 8){
+        //     QMessageBox::critical(nullptr, "Error", "Error Check sensorbits or file,file size not match sensorbits!");
+        //     SAFE_FREE(YUVData);
+        //     file.close();
+        //     return -2;
+        // }
         if(sensorbits > 8){
-            QMessageBox::critical(nullptr, "Error", "Error Check sensorbits or file,file size not match sensorbits!");
-            SAFE_FREE(YUVData);
-            file.close();
-            return -2;
+            QMessageBox::information(nullptr, "INFO", "The file is auto detect sensorbits = 8 !!!");
+            sensorbits = 8;
+            ui->spin_bit->setValue(8);
         }
         uint8_t *YUV422Data = new uint8_t[filesize];           //暂存422数据
         file.read(reinterpret_cast<char*>(YUV422Data), filesize);  //读取所有YUV422数据
@@ -308,11 +318,16 @@ int YUV_Viewer::readYUV420(QString filepath,qint64 filesize, qint64 pixelsize)
         // ui->packtype_combx->setCurrentIndex(1);   //设置为PLANAR格式
     }
     if(filesize == pixelsize*1.5){
+        // if(sensorbits > 8){
+        //     QMessageBox::critical(nullptr, "Error", "Error Check sensorbits or file,file size not match sensorbits!");
+        //     SAFE_FREE(YUVData);
+        //     file.close();
+        //     return -2;
+        // }
         if(sensorbits > 8){
-            QMessageBox::critical(nullptr, "Error", "Error Check sensorbits or file,file size not match sensorbits!");
-            SAFE_FREE(YUVData);
-            file.close();
-            return -2;
+            QMessageBox::information(nullptr, "INFO", "The file is auto detect sensorbits = 8 !!!");
+            sensorbits = 8;
+            ui->spin_bit->setValue(8);
         }
         uint8_t *YUV420Data = new uint8_t[filesize];       //暂存420数据
         file.read(reinterpret_cast<char*>(YUV420Data), filesize);  //读取所有YUV422数据
@@ -765,6 +780,48 @@ int YUV_Viewer::writeYUV420(QString filepath, YUVFileType savepacktype, SaveType
     file.close();
     return 0;
 }
+
+int YUV_Viewer::open_with_click_init(QString filePath, int width, int height, int sensorbits,YUVFormat format, YUVFileType filetype)
+{
+    if(width == 0 || height == 0){
+        QMessageBox::information(nullptr, "INFO", "Please configure the image size first!!!");
+        return -1;
+    }
+    image_width = width;
+    image_height =height;
+    this->sensorbits = sensorbits;
+
+    ui->imwidth->setText(QString::number(width));
+    ui->imheight->setText(QString::number(height));
+    ui->spin_bit->setValue(sensorbits);
+
+    int formatindex=0;
+    switch(format){
+    case YUV444:formatindex = 0;break;
+    case YUV422:formatindex = 1;break;
+    case YUV420:formatindex = 2;break;
+    }
+    ui->yuv_format->setCurrentIndex(formatindex);
+
+    int filetyeindex=0;
+    switch(filetype){
+    case PACKED:filetyeindex = 0;break;
+    case PLANAR:filetyeindex = 1;break;
+    }
+    ui->packtype_combx->setCurrentIndex(filetyeindex);
+
+    int ret = readYUVImage(filePath);
+    if(ret!=0){
+        return -1;
+    }
+    current_file_path = filePath;  ///打开成功后记录当前文件路径
+    ui->image_box->setTitle("yuv image preview: "+filePath);
+    yuv2rgb_display();
+
+    return 0;
+}
+
+
 
 void YUV_Viewer::on_btn_open_clicked()
 {

@@ -37,13 +37,13 @@
     <string>SIGMA硬件没给寄存器地址</string>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>210</x>
-     <y>90</y>
-     <width>241</width>
-     <height>131</height>
+     <x>140</x>
+     <y>80</y>
+     <width>361</width>
+     <height>161</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">

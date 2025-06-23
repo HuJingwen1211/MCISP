@@ -129,6 +129,31 @@ qint64 RGB_Viewer::getfilesize(QString filepath)
     return file.size();  // 获取文件大小（字节数）
 }
 
+int RGB_Viewer::open_with_click_init(QString filepath, int width, int height, int sensorbits)
+{
+    if(width == 0 || height == 0){
+        QMessageBox::information(nullptr, "INFO", "Please configure the image size first!!!");
+        return -1;
+    }
+    image_width=width;
+    image_height=height;
+    this->sensorbits=sensorbits;
+
+    int isOk=load_rgb_iamge(filepath);   //////读取.rgb文件,如果读取失败则返回
+    if(isOk!=0){    ////load文件失败则返回
+        return -1;
+    }
+    ui->image_box->setTitle("rgb image preview: "+filepath);
+    rgb_image=new QImage(image_width,image_height,QImage::Format_RGB888);    ////创建QImage
+    display_image();         //////可视化RGB图像
+
+    ui->imwidth->setText(QString::number(width));
+    ui->imheight->setText(QString::number(height));
+    ui->spin_sensorbits->setValue(sensorbits);
+
+    return 0;
+}
+
 
 void RGB_Viewer::on_btn_open_clicked()
 {

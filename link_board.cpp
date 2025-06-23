@@ -409,7 +409,8 @@ void link_board::on_link_btn_clicked()
        //关闭串口
        serial->clear();
        serial->close();
-       serial->deleteLater();  //稍后清理
+       // serial->deleteLater();  //稍后清理
+       serial =nullptr;
        //恢复设置使能
        ui->port_combx->setEnabled(true);
        ui->baud_combx->setEnabled(true);

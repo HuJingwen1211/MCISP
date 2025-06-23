@@ -3,7 +3,7 @@
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
   <property name="windowModality">
-   <enum>Qt::NonModal</enum>
+   <enum>Qt::WindowModality::NonModal</enum>
   </property>
   <property name="geometry">
    <rect>
@@ -63,7 +63,7 @@
        <cursorShape>ArrowCursor</cursorShape>
       </property>
       <property name="tabShape">
-       <enum>QTabWidget::Rounded</enum>
+       <enum>QTabWidget::TabShape::Rounded</enum>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -92,7 +92,7 @@
      <x>0</x>
      <y>0</y>
      <width>1080</width>
-     <height>19</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -133,6 +133,7 @@
     </widget>
     <addaction name="act_About"/>
     <addaction name="separator"/>
+    <addaction name="actionUser_Manual"/>
     <addaction name="menuContact_Us"/>
    </widget>
    <widget class="QMenu" name="menuTheme">
@@ -206,18 +207,6 @@
     </font>
    </property>
   </action>
-  <action name="act_DNG2RAW">
-   <property name="text">
-    <string>DNG2RAW</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>Times New Roman</family>
-     <pointsize>10</pointsize>
-     <bold>true</bold>
-    </font>
-   </property>
-  </action>
   <action name="act_About">
    <property name="text">
     <string>About  MCISP</string>
@@ -265,7 +254,12 @@
   </action>
   <action name="actionauthor_YDJ">
    <property name="text">
-    <string>author@YDJ</string>
+    <string>作者:杨德杰</string>
+   </property>
+  </action>
+  <action name="actionUser_Manual">
+   <property name="text">
+    <string>User Manual</string>
    </property>
   </action>
  </widget>

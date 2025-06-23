@@ -19,13 +19,13 @@
   <property name="windowTitle">
    <string>NR_YUV_tab</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>150</x>
      <y>80</y>
-     <width>241</width>
-     <height>151</height>
+     <width>391</width>
+     <height>181</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">

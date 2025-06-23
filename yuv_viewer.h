@@ -41,7 +41,7 @@ class YUV_Viewer : public QMainWindow
 {
     Q_OBJECT
 
-private:
+public:
     enum YUVFormat {  //YUV格式:目前支持444、422、420
         YUV444 =0,
         YUV422 =1,
@@ -66,6 +66,8 @@ private:
         Cb   =2,
         Cr   =3
     }YUV_COLOR;
+
+private:
     PixelYUV* YUVData = nullptr;
     int image_width;
     int image_height;
@@ -96,9 +98,7 @@ private:
 public:
     explicit YUV_Viewer(QWidget *parent = 0);
     ~YUV_Viewer();
-
-
-
+    int open_with_click_init(QString filePath,int width,int height ,int sensorbits,YUVFormat format,YUVFileType filetype);
 
 private slots:
     void on_btn_open_clicked();
