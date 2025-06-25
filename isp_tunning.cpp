@@ -11,6 +11,7 @@ Tunning_Tab::Tunning_Tab(QWidget *parent) :
     isp=new ISP_Pipeline();        ////初始化isp对象,调用构造函数分配空间
     init_modules_reg();
     view=new My_GraphicsView();
+    configManager = new ISPConfig(isp);
 
 //    workerThread = new QThread;
 //    //moveToThread(workerThread);
@@ -986,5 +987,90 @@ void Tunning_Tab::on_btn_imsave_clicked()
          QMessageBox::information(this, "成功", "图像已保存到"+filePath);
     }
     file.close();
+}
+
+
+
+void Tunning_Tab::on_import_param_btn_clicked()
+{
+    // 检查ISP管道是否初始化
+    if(!isp) {
+        QMessageBox::warning(this, "警告", "ISP管道未初始化!");
+        return;
+    }
+
+    // 打开文件选择对话框
+    QString filePath = QFileDialog::getOpenFileName(
+        this,
+        tr("导入ISP参数配置"),
+        "",
+        tr("配置文件 (*.cfg);;所有文件 (*)")
+        );
+
+    // 检查用户是否选择了文件
+    if (filePath.isEmpty()) {
+        QMessageBox::information(this, "信息", "未选择配置文件");
+        return;
+    }
+
+    // 尝试导入配置
+    if (configManager->importConfig(filePath)) {
+
+        // 更新UI显示,不用导入图像信息
+        // ui->edit_imwidth->setText(QString::number(isp->isp_cfg_reg->input_width));
+        // ui->edit_imheight->setText(QString::number(isp->isp_cfg_reg->input_height));
+        // ui->spin_sensorbits->setValue(isp->isp_cfg_reg->sensor_bits);
+        // ui->combx_impattern->setCurrentIndex(isp->isp_cfg_reg->bayer_pattern);
+
+        // 显示成功消息
+        QMessageBox::information(this, "导入成功", "参数配置已成功导入");
+
+        // 可选：记录导入操作
+        qDebug() << "导入配置文件:" << filePath;
+    } else {
+        QMessageBox::warning(this, "导入失败", "无法导入参数配置，请检查文件格式");
+    }
+
+}
+
+
+void Tunning_Tab::on_export_param_btn_clicked()
+{
+    // 检查ISP管道是否初始化
+    if(!isp) {
+        QMessageBox::warning(this, "警告", "ISP管道未初始化!");
+        return;
+    }
+
+    // 打开文件保存对话框
+    QString filePath = QFileDialog::getSaveFileName(
+        this,
+        tr("导出ISP参数配置"),
+        "ecustisp_config.cfg", // 默认文件名
+        tr("配置文件 (*.cfg);;所有文件 (*)")
+        );
+
+    // 检查用户是否选择了路径
+    if (filePath.isEmpty()) {
+        QMessageBox::information(this, "信息", "未选择保存路径");
+        return;
+    }
+
+    // 确保文件扩展名正确
+    if (!filePath.endsWith(".cfg", Qt::CaseInsensitive)) {
+        filePath += ".cfg";
+    }
+
+    // 尝试导出配置
+    if (configManager->exportConfig(filePath)) {
+        // 显示成功消息
+        QMessageBox::information(this, "导出成功", "参数配置已成功导出");
+
+        // 可选：记录导出操作
+        qDebug() << "导出配置文件:" << filePath;
+    } else {
+        QMessageBox::warning(this, "导出失败", "无法导出参数配置");
+    }
+
 }
 

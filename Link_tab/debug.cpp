@@ -337,10 +337,3 @@ void Debug::on_NR_YUV_MODULE_EN_check_stateChanged(int arg1)
     memcpy(databuf,transdata.constData(),transdata.size());
     link_tab->send_cmd_data(DEBUG_CMD,databuf,static_cast<uint16_t>(transdata.size()));
 }
-
-
-
-
-
-
-

@@ -163,7 +163,10 @@ void link_board::Receive(uint8_t byteData)
     }
     if(frameState.step == 0 && byteData != 0xFF)
     {
-        qDebug() << "Discarded byte:" << Qt::hex << byteData;
+        ////若是非帧数据则直接打印字符，不添加回车
+        // ui->echo_text->insertPlainText(QString(static_cast<char>(byteData)));
+        // qDebug() << "Discarded byte:" << Qt::hex << byteData;
+        processColorByte(byteData); // 逐字节处理
     }
 }
 
@@ -249,6 +252,52 @@ void link_board::startNewReception(uint32_t totalFrames, uint32_t frameDataSize)
     currentReception.frameData.resize(totalFrames);
 }
 
+void link_board::processColorByte(uint8_t byte)
+{
+    if (m_inEscapeSequence) {
+        m_escapeSequence += static_cast<char>(byte);
+        // 检查是否到达ANSI序列的结束符 'm'
+        if (byte == 'm') {
+            applyAnsiColorFormat(m_escapeSequence);
+            m_escapeSequence.clear();
+            m_inEscapeSequence = false;
+        }
+    } else {
+        if (byte == 0x1B) { // 检测到开始符 '\x1b'
+            m_inEscapeSequence = true;
+            m_escapeSequence = "\x1b";
+        } else {
+            // 普通字符，用当前格式输出
+            appendChar(static_cast<char>(byte));
+        }
+    }
+
+}
+
+void link_board::resetColorFormat()
+{
+    m_currentFormat = m_defaultFormat;
+}
+
+void link_board::applyAnsiColorFormat(const QString &ansiCode)
+{
+    if (ansiCode == "\x1b[31m") m_currentFormat.setForeground(Qt::red);
+    else if (ansiCode == "\x1b[32m") m_currentFormat.setForeground(Qt::green);
+    else if (ansiCode == "\x1b[33m") m_currentFormat.setForeground(Qt::yellow);
+    else if (ansiCode == "\x1b[34m") m_currentFormat.setForeground(Qt::blue);
+    else if (ansiCode == "\x1b[35m") m_currentFormat.setForeground(Qt::magenta);
+    else if (ansiCode == "\x1b[36m") m_currentFormat.setForeground(Qt::cyan);
+    else if (ansiCode == "\x1b[0m") m_currentFormat = m_defaultFormat; // 重置
+}
+
+void link_board::appendChar(char c)
+{
+    QTextCursor cursor(ui->echo_text->document());
+    cursor.movePosition(QTextCursor::End);
+    cursor.setCharFormat(m_currentFormat);
+    cursor.insertText(QString(c));
+}
+
 
 
 link_board::link_board(QWidget *parent) :
@@ -276,6 +325,9 @@ link_board::link_board(QWidget *parent) :
     connect(this, SIGNAL(frameReceived(uint8_t,QByteArray)), this, SLOT(process_cmd_data(uint8_t,QByteArray)));
     connect(this, SIGNAL(imageReceived(QByteArray)),SLOT(save_image(QByteArray)));
     resetReception();
+
+    m_defaultFormat.setForeground(Qt::white); // 默认颜色
+    m_currentFormat = m_defaultFormat;
 }
 
 
@@ -961,11 +1013,35 @@ void link_board::save_image(const QByteArray &imageData)
     QMessageBox::information(this, tr("成功"), tr("图像已成功保存到:\n%1").arg(fileName));
 }
 
-
-
 void link_board::set_echo_text(QString str)
 {
     ui->echo_text->appendPlainText(str);
+    ui->echo_text->ensureCursorVisible(); // 确保光标可见（即滚动到底部）
 }
 
+
+////导入cfg配置文件
+void link_board::on_import_cfg_btn_clicked()
+{
+
+}
+
+
+
+
+////导出cfg配置文件
+void link_board::on_export_cfg_btn_clicked()
+{
+
+}
+
+
+
+
+
+//////将配置文件更新到开发板的SD卡中
+void link_board::on_boot_cfg_btn_clicked()
+{
+
+}
 

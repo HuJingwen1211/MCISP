@@ -164,7 +164,7 @@
       </widget>
       <widget class="QPushButton" name="tpg_cfg_btn">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -539,42 +539,11 @@
       <attribute name="title">
        <string>页</string>
       </attribute>
-      <widget class="QPushButton" name="isp_cfg_btn">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="geometry">
-        <rect>
-         <x>530</x>
-         <y>10</y>
-         <width>100</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>100</width>
-         <height>40</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>configure</string>
-       </property>
-       <property name="checkable">
-        <bool>false</bool>
-       </property>
-      </widget>
       <widget class="QPushButton" name="isp_back_btn">
        <property name="geometry">
         <rect>
          <x>530</x>
-         <y>160</y>
+         <y>220</y>
          <width>100</width>
          <height>41</height>
         </rect>
@@ -619,7 +588,7 @@
          <x>0</x>
          <y>0</y>
          <width>531</width>
-         <height>211</height>
+         <height>261</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">

@@ -130,6 +130,7 @@
       <string>Contact  Us</string>
      </property>
      <addaction name="actionauthor_YDJ"/>
+     <addaction name="actionhu"/>
     </widget>
     <addaction name="act_About"/>
     <addaction name="separator"/>
@@ -254,12 +255,17 @@
   </action>
   <action name="actionauthor_YDJ">
    <property name="text">
-    <string>作者:杨德杰</string>
+    <string>杨德杰</string>
    </property>
   </action>
   <action name="actionUser_Manual">
    <property name="text">
     <string>User Manual</string>
+   </property>
+  </action>
+  <action name="actionhu">
+   <property name="text">
+    <string>胡菁文</string>
    </property>
   </action>
  </widget>

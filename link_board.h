@@ -5,6 +5,7 @@
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 #include <QTreeWidget>
+#include <QTextCharFormat>
 
 
 #define BUFFER_SIZE   256    ///发送接收的最大缓存
@@ -73,6 +74,16 @@ private:
     ImageReception currentReception;
     QByteArray partialFrame;
 
+    ///用于串口颜色判断：
+    QTextCharFormat m_currentFormat;
+    QTextCharFormat m_defaultFormat;
+    bool m_inEscapeSequence = false;
+    QString m_escapeSequence;
+    void processColorByte(uint8_t byte);
+    void resetColorFormat();
+    void applyAnsiColorFormat(const QString &ansiCode);
+    void appendChar(char c);
+
 
 public:
     explicit link_board(QWidget *parent = 0);
@@ -88,6 +99,12 @@ private slots:
     void on_module_list_itemDoubleClicked(QTreeWidgetItem *item, int column);
     void on_link_tab_tabCloseRequested(int index);
     void save_image(const QByteArray &imageData);
+
+    void on_import_cfg_btn_clicked();
+
+    void on_export_cfg_btn_clicked();
+
+    void on_boot_cfg_btn_clicked();
 
 public:
     void set_echo_text(QString str);

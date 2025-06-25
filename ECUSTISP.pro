@@ -49,6 +49,7 @@ SOURCES += \
     Link_tab/scale_tab.cpp \
     Link_tab/tm_tab.cpp \
     Link_tab/yfc_tab.cpp \
+    ispconfig.cpp \
         main.cpp \
         mainwindow.cpp \
     isp_tunning.cpp \
@@ -90,6 +91,7 @@ HEADERS += \
     Link_tab/scale_tab.h \
     Link_tab/tm_tab.h \
     Link_tab/yfc_tab.h \
+    ispconfig.h \
         mainwindow.h \
     isp_tunning.h \
     isp_pipeline.h \

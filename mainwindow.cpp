@@ -505,9 +505,11 @@ void MainWindow::on_act_About_triggered()
                 <li>关联文件类型：将 <code>.raw/.rgb/.yuv</code> 设置为默认用本软件打开，即可双击文件打开图像</li>
                 <li>主题切换：支持 <b>暗黑(Dark)/亮白(Light)</b> 主题</li>
             </ul>
-            <p>🔗<a href='https://blog.csdn.net/qq_46144191?spm=1000.2115.3001.10640'>个人博客</a> |✉️ <a href='mailto:470951044@qq.com'>技术支持</a></p>
         </div>
+
         )";
+
+    // <p>🔗<a href='https://blog.csdn.net/qq_46144191?spm=1000.2115.3001.10640'>个人博客</a> |✉️ <a href='mailto:470951044@qq.com'>技术支持</a></p>
 
     // 1. 创建自定义对话框（替代QMessageBox）
     QDialog dialog(this);
@@ -526,7 +528,7 @@ void MainWindow::on_act_About_triggered()
         u8R"(
         html, body {
             font-family: "Microsoft YaHei", Arial, sans-serif;
-            font-size: 10px;
+            font-size: 13px;
             color: #333333;
             margin: 0;
             padding: 0;
@@ -545,7 +547,7 @@ void MainWindow::on_act_About_triggered()
             margin-bottom: 6px;
         }
         ul {
-            margin: 5px 0;
+            margin: 10px 0;
             padding-left: 18px;
         }
         li {

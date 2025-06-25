@@ -22,6 +22,8 @@
 #include "Dialog/awb_manual_dialog.h"
 #include "Dialog/csc_dialog.h"
 
+#include "ispconfig.h"
+
 typedef void (*FunctionPtr)(); ////函数指针
 
 namespace Ui {
@@ -71,6 +73,11 @@ private slots:
 
     void on_btn_imsave_clicked();
 
+
+    void on_import_param_btn_clicked();
+
+    void on_export_param_btn_clicked();
+
 signals:
     void finished();
 
@@ -78,6 +85,7 @@ private:
     Ui::Tunning_Tab *ui;   ///布局对象
     ISP_Pipeline *isp;     /////isp对象
     My_GraphicsView *view; ///图像显示对象
+    ISPConfig *configManager;
     //QThread* workerThread;
 };
 
