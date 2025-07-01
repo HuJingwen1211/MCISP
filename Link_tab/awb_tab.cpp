@@ -1,7 +1,7 @@
 #include "awb_tab.h"
 
 AWB_tab::AWB_tab(QWidget *parent)
-	: QWidget(parent)
+    : ConfigurableTab(parent)
 {
 	ui.setupUi(this);
     link_tab=qobject_cast<link_board*>(this->parent());
@@ -23,6 +23,25 @@ AWB_tab::AWB_tab(QWidget *parent)
 
 AWB_tab::~AWB_tab()
 {}
+
+
+
+QMap<QString, int> AWB_tab::getAllParams() const
+{
+    QMap<QString, int> params;
+    params["R_Gain"] = ui.R_Gain->value();
+    params["G_Gain"] = ui.G_Gain->value();
+    params["B_Gain"] = ui.B_Gain->value();
+    return params;
+}
+
+void AWB_tab::setParams(const QMap<QString, int>& params)
+{
+    if (params.contains("R_Gain")) ui.R_Gain->setValue(params["R_Gain"]);
+    if (params.contains("G_Gain")) ui.G_Gain->setValue(params["G_Gain"]);
+    if (params.contains("B_Gain")) ui.B_Gain->setValue(params["B_Gain"]);
+}
+
 
 void AWB_tab::updateModelFromUI()
 {

@@ -85,6 +85,12 @@ private:
     void appendChar(char c);
 
 
+    void exportAllConfig();
+    void importAllConfig();
+    bool setParamsToTab(const QString& moduleName, const QMap<QString, int>& params);
+    void openAllModuleTabs();
+
+
 public:
     explicit link_board(QWidget *parent = 0);
     ~link_board();
@@ -105,6 +111,8 @@ private slots:
     void on_export_cfg_btn_clicked();
 
     void on_boot_cfg_btn_clicked();
+
+    void printTimeStamp();
 
 public:
     void set_echo_text(QString str);

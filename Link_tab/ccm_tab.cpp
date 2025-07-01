@@ -1,7 +1,7 @@
 #include "ccm_tab.h"
 
 CCM_tab::CCM_tab(QWidget *parent)
-	: QWidget(parent)
+    : ConfigurableTab(parent)
 {
 	ui.setupUi(this);
     link_tab=qobject_cast<link_board*>(this->parent());
@@ -30,6 +30,36 @@ CCM_tab::CCM_tab(QWidget *parent)
 
 CCM_tab::~CCM_tab()
 {}
+
+
+QMap<QString, int> CCM_tab::getAllParams() const
+{
+    QMap<QString, int> params;
+    // CCM矩阵的9个参数
+    params["ccm_a11"] = ui.ccm_a11->value();
+    params["ccm_a12"] = ui.ccm_a12->value();
+    params["ccm_a13"] = ui.ccm_a13->value();
+    params["ccm_a21"] = ui.ccm_a21->value();
+    params["ccm_a22"] = ui.ccm_a22->value();
+    params["ccm_a23"] = ui.ccm_a23->value();
+    params["ccm_a31"] = ui.ccm_a31->value();
+    params["ccm_a32"] = ui.ccm_a32->value();
+    params["ccm_a33"] = ui.ccm_a33->value();
+    return params;
+}
+
+void CCM_tab::setParams(const QMap<QString, int>& params)
+{
+    if (params.contains("ccm_a11")) ui.ccm_a11->setValue(params["ccm_a11"]);
+    if (params.contains("ccm_a12")) ui.ccm_a12->setValue(params["ccm_a12"]);
+    if (params.contains("ccm_a13")) ui.ccm_a13->setValue(params["ccm_a13"]);
+    if (params.contains("ccm_a21")) ui.ccm_a21->setValue(params["ccm_a21"]);
+    if (params.contains("ccm_a22")) ui.ccm_a22->setValue(params["ccm_a22"]);
+    if (params.contains("ccm_a23")) ui.ccm_a23->setValue(params["ccm_a23"]);
+    if (params.contains("ccm_a31")) ui.ccm_a31->setValue(params["ccm_a31"]);
+    if (params.contains("ccm_a32")) ui.ccm_a32->setValue(params["ccm_a32"]);
+    if (params.contains("ccm_a33")) ui.ccm_a33->setValue(params["ccm_a33"]);
+}
 
 void CCM_tab::updateModelFromUI()
 {

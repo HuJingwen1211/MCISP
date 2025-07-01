@@ -1023,7 +1023,7 @@ void link_board::set_echo_text(QString str)
 ////导入cfg配置文件
 void link_board::on_import_cfg_btn_clicked()
 {
-
+    importAllConfig();
 }
 
 
@@ -1032,16 +1032,242 @@ void link_board::on_import_cfg_btn_clicked()
 ////导出cfg配置文件
 void link_board::on_export_cfg_btn_clicked()
 {
-
+    exportAllConfig();
 }
-
-
 
 
 
 //////将配置文件更新到开发板的SD卡中
 void link_board::on_boot_cfg_btn_clicked()
 {
+    QMessageBox::information(this, "INFO", "该功能正在开发中....");
+}
 
+
+void link_board::printTimeStamp()
+{
+    QDateTime currentTime = QDateTime::currentDateTime();
+    QString timeStr = currentTime.toString("yyyy-MM-dd hh:mm:ss");
+    ui->echo_text->appendPlainText(QString("[%1]").arg(timeStr));
+    ui->echo_text->appendPlainText("");
+}
+
+
+
+
+void link_board::exportAllConfig()
+{
+    // 弹出文件保存对话框
+    QString fileName = QFileDialog::getSaveFileName(
+        this,
+        tr("保存配置"),
+        QDir::homePath() + "/link_config.cfg",
+        tr("配置文件 (*.cfg);;文本文件 (*.txt);;所有文件 (*)")
+        );
+
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    // 创建文件并写入配置
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, tr("错误"), tr("无法创建文件:\n%1").arg(file.errorString()));
+        return;
+    }
+
+    QTextStream out(&file);
+
+    // 定义所有模块名称
+    QStringList allModules = ConfigurableTab::defaultParams.keys();
+
+    // // 遍历所有打开的tab
+    // for (int i = 0; i < ui->link_tab->count(); i++) {
+    //     QWidget* tabWidget = ui->link_tab->widget(i);
+
+    //     // 尝试转换为ConfigurableTab基类
+    //     if (ConfigurableTab* configTab = dynamic_cast<ConfigurableTab*>(tabWidget)) {
+    //         out << "# " << configTab->getModuleName() << "\n";
+    //         QMap<QString, int> params = configTab->getAllParams();
+    //         for (auto it = params.begin(); it != params.end(); ++it) {
+    //             out << it.key() << " = " << it.value() << "\n";
+    //         }
+    //         out << "#####\n\n";
+    //     }
+    // }
+
+    // 遍历所有模块
+    for (const QString& moduleName : allModules) {
+        QMap<QString, int> moduleParams = ConfigurableTab::defaultParams[moduleName];  // 默认使用默认值
+
+        // 查找是否有打开的tab，如果有则使用实际值
+        for (int i = 0; i < ui->link_tab->count(); i++) {
+            QWidget* tabWidget = ui->link_tab->widget(i);
+            if (ConfigurableTab* configTab = dynamic_cast<ConfigurableTab*>(tabWidget)) {
+                if (configTab->getModuleName() == moduleName) {
+                    moduleParams = configTab->getAllParams();  // 使用实际值
+                    break;
+                }
+            }
+        }
+
+        // 写入模块参数
+        out << "# " << moduleName << "\n";
+        for (auto it = moduleParams.begin(); it != moduleParams.end(); ++it) {
+            out << it.key() << " = " << it.value() << "\n";
+        }
+        out << "#####\n\n";
+    }
+
+    file.close();
+
+    QMessageBox::information(this, tr("成功"), tr("配置已保存到:\n%1").arg(fileName));
+
+    // 在终端显示导出信息
+    ui->echo_text->appendPlainText(QString("配置已导出到: %1").arg(fileName));
+    printTimeStamp();
+}
+
+
+void link_board::importAllConfig()
+{
+    // 弹出文件选择对话框
+    QString fileName = QFileDialog::getOpenFileName(
+        this,
+        tr("导入配置"),
+        QDir::homePath(),
+        tr("配置文件 (*.cfg);;文本文件 (*.txt);;所有文件 (*)")
+        );
+
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    // 打开模块tab
+    openAllModuleTabs();
+
+    // 打开文件并读取内容
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, tr("错误"), tr("无法打开文件:\n%1").arg(file.errorString()));
+        return;
+    }
+
+    QTextStream in(&file);
+    QString currentModule;
+    QMap<QString, int> currentParams;
+    bool hasSuccess = true;
+    // 逐行读取文件
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();
+
+        // 跳过空行
+        if (line.isEmpty()) {
+            continue;
+        }
+
+        // 检查是否是模块注释行
+        if (line.startsWith("# ") && !line.startsWith("#####")) {
+            // 如果有之前的模块数据，先处理它
+            if (!currentModule.isEmpty() && !currentParams.isEmpty()) {
+                if (!setParamsToTab(currentModule, currentParams)) {
+                    hasSuccess = false;  // 如果导入失败，设置标志
+                }
+            }
+
+            // 开始新模块
+            currentModule = line.mid(2).trimmed(); // 去掉"# "前缀
+            currentParams.clear();
+        }
+        // 检查是否是分隔符
+        else if (line == "#####") {
+            // 处理当前模块的数据
+            if (!currentModule.isEmpty() && !currentParams.isEmpty()) {
+                if (!setParamsToTab(currentModule, currentParams)) {
+                    hasSuccess = false;  // 如果导入失败，设置标志}
+                }
+            }
+            currentModule.clear();
+            currentParams.clear();
+        }
+        // 检查是否是参数行 (格式: 参数名 = 值)
+        else if (line.contains("=")) {
+            QStringList parts = line.split("=");
+            if (parts.size() == 2) {
+                QString paramName = parts[0].trimmed();
+                int paramValue = parts[1].trimmed().toInt();
+                currentParams[paramName] = paramValue;
+            }
+        }
+    }
+
+    // 处理最后一个模块（如果文件末尾没有#####）
+    if (!currentModule.isEmpty() && !currentParams.isEmpty()) {
+        if (!setParamsToTab(currentModule, currentParams)) {
+            hasSuccess = false;  // 如果导入失败，设置标志
+        }
+    }
+
+    file.close();
+    if (hasSuccess) {
+        QMessageBox::information(this, tr("成功"), tr("配置已从文件导入:\n%1").arg(fileName));
+        ui->echo_text->appendPlainText(QString("配置已从文件导入: %1").arg(fileName));
+    } else {
+        QMessageBox::warning(this, tr("导入失败"), tr("没有成功导入所有模块的配置\n请先打开相应的模块tab"));
+    }
+    printTimeStamp();
+}
+
+bool link_board::setParamsToTab(const QString& moduleName, const QMap<QString, int>& params)
+{
+    // 查找对应的tab
+    for (int i = 0; i < ui->link_tab->count(); i++) {
+        QWidget* tabWidget = ui->link_tab->widget(i);
+
+        if (ConfigurableTab* configTab = dynamic_cast<ConfigurableTab*>(tabWidget)) {
+            if (configTab->getModuleName() == moduleName) {
+                // 找到匹配的模块，设置参数
+                configTab->setParams(params);  // 直接调用虚函数，多态处理
+                ui->echo_text->appendPlainText(QString("已导入模块 '%1' 的参数").arg(moduleName));
+                return true;
+            }
+        }
+    }
+
+    // 如果没找到对应的tab，提示用户
+    ui->echo_text->appendPlainText(QString("警告: 未找到模块 '%1' 的tab，请先打开该模块").arg(moduleName));
+    return false;
+}
+
+void link_board::openAllModuleTabs()
+{
+    QStringList allModules = ConfigurableTab::defaultParams.keys();
+
+    // 使用映射表，自动处理所有模块
+    static const QMap<QString, void (link_board::*)()> moduleOpenFunctions = {
+        {"BLC", &link_board::BLC_DoubleClicked},
+        {"LSC", &link_board::LSC_DoubleClicked},
+        {"NR_RAW", &link_board::NR_RAW_DoubleClicked},
+        {"AWB", &link_board::AWB_DoubleClicked},
+        {"CCM", &link_board::CCM_DoubleClicked},
+        {"NR_YUV", &link_board::NR_YUV_DoubleClicked},
+        {"DPC", &link_board::DPC_DoubleClicked},
+        {"GB", &link_board::GB_DoubleClicked},
+        {"DMS", &link_board::DMS_DoubleClicked},
+        {"EE", &link_board::EE_DoubleClicked},
+        {"TM", &link_board::TM_DoubleClicked},
+        {"GAMMA", &link_board::GAMMA_DoubleClicked},
+        {"CSC", &link_board::CSC_DoubleClicked},
+        {"SCALE", &link_board::SCALE_DoubleClicked},
+        {"CROP", &link_board::CROP_DoubleClicked},
+        {"YFC", &link_board::YFC_DoubleClicked}
+    };
+
+    for (const QString& moduleName : allModules) {
+        auto func = moduleOpenFunctions.value(moduleName);
+        if (func) {
+            (this->*func)();
+        }
+    }
 }
 

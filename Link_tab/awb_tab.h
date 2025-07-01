@@ -4,6 +4,8 @@
 #include "ui_awb_tab.h"
 #include <QStandardItemModel>
 #include "link_board.h"
+#include "configurable_tab.h"
+
 
 #define  REG_WBC_GAIN_1_ADDR   0xA0000010
 #define  REG_WBC_GAIN_2_ADDR   0xA0000014
@@ -11,7 +13,7 @@
 #define  REG_AWB_GAIN_1_ADDR   0xA000002C
 #define  REG_AWB_GAIN_2_ADDR   0xA0000030
 
-class AWB_tab : public QWidget
+class AWB_tab : public ConfigurableTab
 {
 	Q_OBJECT
 
@@ -19,6 +21,10 @@ public:
 	AWB_tab(QWidget *parent = nullptr);
 	~AWB_tab();
     void updateModelFromUI();
+    // 实现基类的虚函数
+    QMap<QString, int> getAllParams() const override;
+    QString getModuleName() const override { return "AWB"; }
+    void setParams(const QMap<QString, int>& params) override;
 
 private slots:
     void on_awb_read_btn_clicked();

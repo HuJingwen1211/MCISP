@@ -1,7 +1,7 @@
 #include "nr_yuv_tab.h"
 
 NR_YUV_tab::NR_YUV_tab(QWidget *parent)
-	: QWidget(parent)
+    : ConfigurableTab(parent)
 {
 	ui.setupUi(this);
     link_tab=qobject_cast<link_board*>(this->parent());
@@ -25,6 +25,24 @@ NR_YUV_tab::~NR_YUV_tab()
 {
 
 }
+
+
+QMap<QString, int> NR_YUV_tab::getAllParams() const
+{
+    QMap<QString, int> params;
+    params["sigma_R"] = ui.sigma_R->value();
+    params["sigma_S_1"] = ui.sigma_S_1->value();
+    params["sigma_S_4"] = ui.sigma_S_4->value();
+    return params;
+}
+
+void NR_YUV_tab::setParams(const QMap<QString, int>& params)
+{
+    if (params.contains("sigma_R")) ui.sigma_R->setValue(params["sigma_R"]);
+    if (params.contains("sigma_S_1")) ui.sigma_S_1->setValue(params["sigma_S_1"]);
+    if (params.contains("sigma_S_4")) ui.sigma_S_4->setValue(params["sigma_S_4"]);
+}
+
 
 void NR_YUV_tab::updateModelFromUI()
 {
