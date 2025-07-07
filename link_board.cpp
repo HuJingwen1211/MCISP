@@ -308,6 +308,13 @@ link_board::link_board(QWidget *parent) :
     ui->link_tab->setTabsClosable(true);   /////设置Tab关闭按钮可见
     ui->link_tab->setVisible(false);//初始设置不可见
     ui->link_tab->clear();//清除所有页面
+
+    // 设置默认选中Serial
+    ui->serial_radio->setChecked(true);
+
+    // 设置默认显示serial_page
+    ui->config_stack->setCurrentWidget(ui->serial_page);
+
     //查找可用的串口
     foreach(const QSerialPortInfo &info, QSerialPortInfo::availablePorts())
     {
@@ -1268,6 +1275,22 @@ void link_board::openAllModuleTabs()
         if (func) {
             (this->*func)();
         }
+    }
+}
+
+
+void link_board::on_serial_radio_toggled(bool checked)
+{
+    if (checked) {
+        ui->config_stack->setCurrentWidget(ui->serial_page);
+    }
+}
+
+
+void link_board::on_network_radio_toggled(bool checked)
+{
+    if (checked) {
+        ui->config_stack->setCurrentWidget(ui->network_page);
     }
 }
 

@@ -6,7 +6,7 @@
 #include <QtSerialPort/QSerialPortInfo>
 #include <QTreeWidget>
 #include <QTextCharFormat>
-
+#include <QTcpSocket>
 
 #define BUFFER_SIZE   256    ///发送接收的最大缓存
 #define STR_CMD       0x01
@@ -114,6 +114,10 @@ private slots:
 
     void printTimeStamp();
 
+    void on_serial_radio_toggled(bool checked);
+
+    void on_network_radio_toggled(bool checked);
+
 public:
     void set_echo_text(QString str);
     void TEST_DoubleClicked();
@@ -140,7 +144,8 @@ public:
 
 private:
     Ui::link_board *ui;
-    
+    QTcpSocket* tcpSocket = nullptr;
+    bool isNetworkMode = false; // 可选，用于区分当前模式
 };
 
 
