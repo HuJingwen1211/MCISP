@@ -90,6 +90,13 @@ private:
     bool setParamsToTab(const QString& moduleName, const QMap<QString, int>& params);
     void openAllModuleTabs();
 
+    // 分发函数（根据isNetworkMode调用的不同实现）
+    void handleSerialConnect();
+    void handleNetworkConnect();
+
+    int sendSerialData(const uint8_t *data, uint16_t len);
+    int sendNetworkData(const uint8_t *data, uint16_t len);
+
 
 public:
     explicit link_board(QWidget *parent = 0);
@@ -140,11 +147,12 @@ public:
     void YFC_DoubleClicked();
     void Debug_DoubleClicked();
     void Capture_DoubleClicked();
-    QSerialPort* serial = nullptr;   ////串口对象
+
 
 private:
     Ui::link_board *ui;
     QTcpSocket* tcpSocket = nullptr;
+    QSerialPort* serial = nullptr;   ////串口对象
     bool isNetworkMode = false; // 可选，用于区分当前模式
 };
 

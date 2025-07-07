@@ -25,25 +25,6 @@
 #include "Link_tab/debug.h"
 #include "Link_tab/capture_tab.h"
 
-int link_board::Send(const uint8_t *data, uint16_t len)
-{
-    if (!serial || !serial->isOpen()) {
-        ui->echo_text->appendPlainText("串口未打开");
-        return -1;
-    }
-    // 将数据写入串口
-    qint64 bytesWritten = serial->write(reinterpret_cast<const char*>(data), len);
-    if (bytesWritten == -1) {
-        ui->echo_text->appendPlainText("串口发送失败");
-    } else if (bytesWritten != len) {
-        ui->echo_text->appendPlainText("发送长度错误");
-    }
-    // 确保数据被发送
-    if (!serial->waitForBytesWritten(1000)) {
-        ui->echo_text->appendPlainText("串口发送延时");
-    }
-    return 0;
-}
 
 uint16_t link_board::CRC16_Check(const uint8_t *data, uint8_t len)
 {
@@ -397,13 +378,18 @@ void link_board::read_reg_process(const QByteArray &data)
 }
 
 
+
 void link_board::handle_redy_read()
 {
-    if (!serial || !serial->isOpen()) {
-        return;
+    QByteArray receivedData;
+    if (isNetworkMode) {
+        if (!tcpSocket || tcpSocket->state() != QAbstractSocket::ConnectedState) return;
+        receivedData = tcpSocket->readAll();
+    } else {
+        if (!serial || !serial->isOpen()) return;
+        receivedData = serial->readAll();
     }
-    QByteArray receivedData = serial->readAll();
-    // 将接收到的数据逐个字节送入状态机
+    // 逐字节送入状态机
     for(int i = 0; i < receivedData.size(); ++i) {
         Receive(static_cast<uint8_t>(receivedData.at(i)));
     }
@@ -437,47 +423,145 @@ void link_board::on_clear_btn_clicked()
 }
 
 ////连接开发板串口
-void link_board::on_link_btn_clicked()
+///
+int link_board::Send(const uint8_t *data, uint16_t len)
 {
-   if(ui->link_btn->text()==tr("Connect")){
-       serial = new QSerialPort;             ///创建串口
-       serial->setPortName(ui->port_combx->currentText()); ///设置串口名
-       serial->setBaudRate(ui->baud_combx->currentText().toInt()); ///设置波特率
-       serial->setDataBits(QSerialPort::Data8);  ////设置数据位
-       serial->setParity(QSerialPort::NoParity);  ////设置无奇偶校验
-       serial->setStopBits(QSerialPort::OneStop); ///设置一位停止位
-       serial->setFlowControl(QSerialPort::NoFlowControl);  ///设置流控制
-       if (serial->open(QIODevice::ReadWrite)) {             //打开串口
-           //qDebug() << "Serial port opened successfully!";
-           ui->echo_text->appendPlainText(QString("Serial port opened successfully!  Port:%1").arg(ui->port_combx->currentText()));
-       } else {
-           ui->echo_text->appendPlainText(QString("Failed to open serial port!"));
-           return;
-           //qDebug() << "Failed to open serial port.";
-       }
-       //serial->open(QIODevice::ReadWrite);           ////打开串口
-
-       ui->port_combx->setEnabled(false);
-       ui->baud_combx->setEnabled(false);
-       ui->link_btn->setText(tr("Disconnect"));
-       ui->link_btn->setStyleSheet("background: #38815c;");
-       ///ui->sendButton->setEnabled(true);
-        connect(serial, SIGNAL(readyRead()), this, SLOT(handle_redy_read()));
-
-   }else if(ui->link_btn->text()==tr("Disconnect")){
-       //关闭串口
-       serial->clear();
-       serial->close();
-       // serial->deleteLater();  //稍后清理
-       serial =nullptr;
-       //恢复设置使能
-       ui->port_combx->setEnabled(true);
-       ui->baud_combx->setEnabled(true);
-       ui->link_btn->setText(tr("Connect"));
-       ui->link_btn->setStyleSheet("background: #455364;");
-   }
+    if (isNetworkMode) {
+        return sendNetworkData(data, len);
+    } else {
+        return sendSerialData(data, len);
+    }
 }
 
+int link_board::sendSerialData(const uint8_t *data, uint16_t len)
+{
+    if (!serial || !serial->isOpen()) {
+        ui->echo_text->appendPlainText("串口未打开");
+        return -1;
+    }
+    qint64 bytesWritten = serial->write(reinterpret_cast<const char*>(data), len);
+    if (bytesWritten == -1) {
+        ui->echo_text->appendPlainText("串口发送失败");
+    } else if (bytesWritten != len) {
+        ui->echo_text->appendPlainText("发送长度错误");
+    }
+    if (!serial->waitForBytesWritten(1000)) {
+        ui->echo_text->appendPlainText("串口发送延时");
+    }
+    return 0;
+}
+
+int link_board::sendNetworkData(const uint8_t *data, uint16_t len)
+{
+    if (!tcpSocket || tcpSocket->state() != QAbstractSocket::ConnectedState) {
+        ui->echo_text->appendPlainText("网络未连接");
+        return -1;
+    }
+    qint64 bytesWritten = tcpSocket->write(reinterpret_cast<const char*>(data), len);
+    if (bytesWritten == -1) {
+        ui->echo_text->appendPlainText("网络发送失败");
+    } else if (bytesWritten != len) {
+        ui->echo_text->appendPlainText("网络发送长度错误");
+    }
+    if (!tcpSocket->waitForBytesWritten(1000)) {
+        ui->echo_text->appendPlainText("网络发送延时");
+    }
+    return 0;
+}
+
+void link_board::on_link_btn_clicked()
+{
+    if (isNetworkMode) {
+        handleNetworkConnect();
+    } else {
+        handleSerialConnect();
+    }
+}
+
+void link_board::handleSerialConnect()
+{
+    if(ui->link_btn->text()==tr("Connect")){
+        serial = new QSerialPort;             ///创建串口
+        serial->setPortName(ui->port_combx->currentText()); ///设置串口名
+        serial->setBaudRate(ui->baud_combx->currentText().toInt()); ///设置波特率
+        serial->setDataBits(QSerialPort::Data8);  ////设置数据位
+        serial->setParity(QSerialPort::NoParity);  ////设置无奇偶校验
+        serial->setStopBits(QSerialPort::OneStop); ///设置一位停止位
+        serial->setFlowControl(QSerialPort::NoFlowControl);  ///设置流控制
+        if (serial->open(QIODevice::ReadWrite)) {             //打开串口
+            //qDebug() << "Serial port opened successfully!";
+            ui->echo_text->appendPlainText(QString("Serial port opened successfully!  Port:%1").arg(ui->port_combx->currentText()));
+        } else {
+            ui->echo_text->appendPlainText(QString("Failed to open serial port!"));
+            return;
+            //qDebug() << "Failed to open serial port.";
+        }
+        //serial->open(QIODevice::ReadWrite);           ////打开串口
+
+        ui->port_combx->setEnabled(false);
+        ui->baud_combx->setEnabled(false);
+        ui->link_btn->setText(tr("Disconnect"));
+        ui->link_btn->setStyleSheet("background: #38815c;");
+        ///ui->sendButton->setEnabled(true);
+        connect(serial, SIGNAL(readyRead()), this, SLOT(handle_redy_read()));
+
+    }else if(ui->link_btn->text()==tr("Disconnect")){
+        //关闭串口
+        serial->clear();
+        serial->close();
+        // serial->deleteLater();  //稍后清理
+        serial =nullptr;
+        //恢复设置使能
+        ui->port_combx->setEnabled(true);
+        ui->baud_combx->setEnabled(true);
+        ui->link_btn->setText(tr("Connect"));
+        ui->link_btn->setStyleSheet("background: #455364;");
+    }
+}
+
+
+void link_board::handleNetworkConnect()
+{
+    if (ui->link_btn->text() == tr("Connect")) {
+        // 如果之前有socket，先释放
+        if (tcpSocket) {
+            tcpSocket->deleteLater();
+        }
+        tcpSocket = new QTcpSocket(this);
+
+        // 连接信号槽
+        connect(tcpSocket, &QTcpSocket::connected, this, [this]() {
+            ui->echo_text->appendPlainText("网络连接成功!");
+            ui->link_btn->setText(tr("Disconnect"));
+            ui->link_btn->setStyleSheet("background: #38815c;");
+            ui->ip_lineEdit->setEnabled(false);
+            ui->tcp_port_spinBox->setEnabled(false);
+        });
+        connect(tcpSocket, &QTcpSocket::disconnected, this, [this]() {
+            ui->echo_text->appendPlainText("网络连接断开");
+            ui->link_btn->setText(tr("Connect"));
+            ui->link_btn->setStyleSheet("background: #455364;");
+            ui->ip_lineEdit->setEnabled(true);
+            ui->tcp_port_spinBox->setEnabled(true);
+        });
+        connect(tcpSocket, &QTcpSocket::readyRead, this, &link_board::handle_redy_read);
+        // connect(tcpSocket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error),
+        //         this, [this](QAbstractSocket::SocketError) {
+        //             ui->echo_text->appendPlainText(QString("网络错误: %1").arg(tcpSocket->errorString()));
+        //         });
+
+        // 发起连接
+        QString ip = ui->ip_lineEdit->text();
+        int port = ui->tcp_port_spinBox->value();
+        tcpSocket->connectToHost(ip, port);
+        ui->echo_text->appendPlainText(QString("正在连接 %1:%2...").arg(ip).arg(port));
+    } else if (ui->link_btn->text() == tr("Disconnect")) {
+        if (tcpSocket) {
+            tcpSocket->disconnectFromHost();
+            // 断开后会自动触发disconnected信号，UI状态会自动恢复
+        }
+    }
+}
 ///////双击TreeWidget事件
 void link_board::on_module_list_itemDoubleClicked(QTreeWidgetItem *item, int column)
 {
@@ -1282,6 +1366,7 @@ void link_board::openAllModuleTabs()
 void link_board::on_serial_radio_toggled(bool checked)
 {
     if (checked) {
+        isNetworkMode = false;
         ui->config_stack->setCurrentWidget(ui->serial_page);
     }
 }
@@ -1290,6 +1375,7 @@ void link_board::on_serial_radio_toggled(bool checked)
 void link_board::on_network_radio_toggled(bool checked)
 {
     if (checked) {
+        isNetworkMode = true;
         ui->config_stack->setCurrentWidget(ui->network_page);
     }
 }
