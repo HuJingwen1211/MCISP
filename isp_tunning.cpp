@@ -800,16 +800,8 @@ int Tunning_Tab::open_with_click_init(QString filepath, int width, int height, i
 ////////////////ISP Pipeline Run/////////////////
 void Tunning_Tab::on_btn_isp_run_clicked()
 {
-//    QThread workerThread;
-//    //this->moveToThread(&workerThread);   ///将当前对象移至多线程
-//    ui->btn_isp_run->setEnabled(false);
-//    QObject::connect(&workerThread, SIGNAL(started()), this, SLOT(Run_Pipeline())); ////绑定多线程与Run_Pipeline
-//    QObject::connect(this, &Tunning_Tab::finished, [&]() {  ////绑定运行完成信号与操作函数
-//        ui->btn_isp_run->setEnabled(true);
-//        qDebug()<<"Finish Pipeline";
-//     });
-//    workerThread.start(); // 启动新线程
 
+/*
     QThread *workerThread = new QThread;    ////始终无法实现无阻塞
     //this->moveToThread(workerThread);
      //连接新线程的started信号到执行复杂算法的槽函数
@@ -821,7 +813,64 @@ void Tunning_Tab::on_btn_isp_run_clicked()
     //运行线程
     workerThread->start();
 
-    //Run_Pipeline();
+
+*/
+    // 检查是否有图像
+    if(!isp->isp_image->BAYER_DAT){
+        QMessageBox::critical(nullptr, "Error", "请先打开图像文件!");
+        return;
+    }
+    
+    // 更新模块使能状态
+    Item_check2reg();
+    
+    // 验证流水线
+    if(!isp->dms_cfg_reg->enable && (isp->ccm_cfg_reg->enable ||
+                                     isp->sharpen_cfg_reg->enable ||
+                                     isp->gamma_cfg_reg->enable||
+                                     isp->csc_cfg_reg->enable)){
+        QMessageBox::critical(nullptr, "Error", "RGB域算法必须先经过Demosaic!");
+        return;
+    }
+    
+    if(!isp->csc_cfg_reg->enable && isp->nryuv_cfg_reg->enable){
+        QMessageBox::critical(nullptr, "Error", "YUV域算法必须先经过CSC!");
+        return;
+    }
+    // 更新传感器位数
+    // isp->isp_cfg_reg->sensor_bits = ui->spin_sensorbits->value();
+    // 禁用运行按钮
+    ui->btn_isp_run->setEnabled(false);
+    ui->btn_isp_run->setText("Processing...");
+    
+    // 连接信号槽
+    connect(isp, &ISP_Pipeline::processingFinished, this, &Tunning_Tab::onProcessingFinished);
+    
+    // 开始异步处理
+    isp->processAsync(isp->isp_cfg_reg->input_image_file);
+
+}
+
+// 新增：处理完成的槽函数
+void Tunning_Tab::onProcessingFinished()
+{
+    // 恢复UI状态
+    ui->btn_isp_run->setEnabled(true);
+    ui->btn_isp_run->setText("Run");
+    
+    // 显示处理结果
+    if(isp->current_pattern == BAYER){
+        raw2clor(isp->isp_image->current_BAYER_DAT);
+        view->SetImage(*isp->raw_clor_image);
+    } else if(isp->current_pattern == RGB){
+        rgb2view(isp->isp_image->RGB_DAT);
+        view->SetImage(*isp->rgb_color_image);
+    } else if(isp->current_pattern == YUV444){
+        yuv2view(isp->isp_image->YUV_DAT);
+        view->SetImage(*isp->rgb_color_image);
+    }  
+    // 断开信号连接
+    disconnect(isp, &ISP_Pipeline::processingFinished, this, &Tunning_Tab::onProcessingFinished);
 }
 
 void Tunning_Tab::on_size_combox_currentIndexChanged(int index)

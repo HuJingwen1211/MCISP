@@ -197,7 +197,7 @@
                   </font>
                  </property>
                  <property name="text">
-                  <string>RAW  Width :                 </string>
+                  <string>RAW  Height :                 </string>
                  </property>
                 </widget>
                </item>

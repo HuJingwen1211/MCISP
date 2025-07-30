@@ -17,11 +17,21 @@ ISP_Pipeline::ISP_Pipeline()
     lsc_cfg_reg=new lsc_reg_t();
     csc_cfg_reg=new csc_reg_t();
     nryuv_cfg_reg=new nryuv_reg_t();
+
+    // 新增：初始化线程
+    m_thread = nullptr;
 }
 
 //////在此处清理isp对象申请的动态内存，使用delete isp时候会自动调用
 ISP_Pipeline::~ISP_Pipeline()
 {
+    // 新增：清理线程
+    if (m_thread) {
+        m_thread->quit();
+        m_thread->wait();
+        delete m_thread;
+        m_thread = nullptr;
+    }
     /////isp_image
 
     if(isp_image->BAYER_DAT!=nullptr){        ////这些先判断是否非空，否则会导致程序闪退
@@ -98,6 +108,81 @@ ISP_Pipeline::~ISP_Pipeline()
       //delete rgb_color_image;
       rgb_color_image=nullptr;
     }
+}
+
+void ISP_Pipeline::processAsync(const QString& imagePath)
+{
+    // 设置输入文件路径
+    isp_cfg_reg->input_image_file = imagePath;
+    
+    // 创建线程
+    m_thread = QThread::create([this]() {
+        this->processInThread();
+    });
+    
+    // 连接信号槽
+    connect(m_thread, &QThread::finished, this, &ISP_Pipeline::onThreadFinished);
+    
+    // 启动线程
+    m_thread->start();
+}
+
+void ISP_Pipeline::processInThread()
+{
+    // 加载图像
+    load_raw_image(isp_cfg_reg, isp_image);
+    
+    // 重要：先设置current_BAYER_DATA为原样
+    copy_rawdata(isp_cfg_reg, isp_image);
+    
+    ///////////////////////Bayer Domain//////////////////////////////////////
+    // 注意：不检查enable状态，直接调用所有算法
+    dpc(isp_image, dpc_cfg_reg, isp_cfg_reg);
+    blc(isp_image, blc_cfg_reg, isp_cfg_reg);
+    lsc(isp_image, lsc_cfg_reg, isp_cfg_reg);
+    nr_raw_nlm(isp_image, nr_raw_cfg_reg, isp_cfg_reg);
+    dgian(isp_image, dgain_cfg_reg, isp_cfg_reg);
+    
+   ////AWB
+    awb_GW(isp_image, awb_cfg_reg, isp_cfg_reg);
+
+
+    // 重要：手动设置白平衡增益
+    wbc_cfg_reg->m_nR = awb_cfg_reg->r_gain;
+    wbc_cfg_reg->m_nGr = awb_cfg_reg->g_gain;
+    wbc_cfg_reg->m_nGb = awb_cfg_reg->g_gain;
+    wbc_cfg_reg->m_nB = awb_cfg_reg->b_gain;
+    
+    wbc(isp_image, wbc_cfg_reg, isp_cfg_reg);
+    demosaic_malvar(isp_image, dms_cfg_reg, isp_cfg_reg);
+    
+    ///////////////////////////RGB Domain/////////////////////////////////////
+    ccm(isp_image, ccm_cfg_reg, isp_cfg_reg);
+    sharpen(isp_image, sharpen_cfg_reg, isp_cfg_reg);
+    gamma(isp_image, gamma_cfg_reg, isp_cfg_reg);
+    csc(isp_image, csc_cfg_reg, isp_cfg_reg);
+    
+    /////////////////////////////YUV Domain//////////////////////////////////
+    nr_yuv444(isp_image, nryuv_cfg_reg, isp_cfg_reg);
+    // 重要：根据实际执行的算法重新设置current_pattern
+    // 这个逻辑应该和Item_check2reg()中的逻辑保持一致
+    if (nryuv_cfg_reg->enable) {
+        current_pattern = YUV444;  // NR YUV被启用，最终得到YUV数据
+    } else if (csc_cfg_reg->enable) {
+        current_pattern = YUV444;  // CSC被启用，最终得到YUV数据
+    } else if (gamma_cfg_reg->enable || sharpen_cfg_reg->enable || ccm_cfg_reg->enable) {
+        current_pattern = RGB;     // RGB域算法被启用，最终得到RGB数据
+    } else if (dms_cfg_reg->enable) {
+        current_pattern = RGB;     // Demosaic被启用，最终得到RGB数据
+    } else {
+        current_pattern = BAYER;   // 只有Bayer域算法被启用
+    }
+}
+
+// 新增：线程完成时的槽函数
+void ISP_Pipeline::onThreadFinished()
+{
+    emit processingFinished();
 }
 
 void ISP_Pipeline::clear_data()    ////只清理new出来的数据

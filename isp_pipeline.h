@@ -10,6 +10,8 @@
 #include <QObject>
 #include <QMessageBox>
 #include <QFile>
+#include <QThread>
+#include <QObject>
 
 #define FILE_NAME_MAX 511  ////文件名大小
 
@@ -193,8 +195,9 @@ typedef struct{
 
 
 //////////////////////isp对象///////////
-class ISP_Pipeline
+class ISP_Pipeline : public QObject
 {
+    Q_OBJECT
 public:
     ISP_IMAGE       *isp_image;
     ISP_PARAM       *isp_cfg_reg;
@@ -221,6 +224,24 @@ public:
     ~ISP_Pipeline();
     void clear_data();
 
+
+    // 新增：异步处理函数
+    void processAsync(const QString& imagePath);
+
+signals:
+    // 新增：处理完成信号
+    void processingFinished();
+
+private slots:
+    // 新增：线程完成时的槽函数
+    void onThreadFinished();
+
+private:
+    // 新增：处理线程
+    QThread* m_thread;
+    
+    // 新增：在线程中执行的函数
+    void processInThread();
 };
 
 /////Common
@@ -268,5 +289,4 @@ void csc(ISP_IMAGE *isp_image,csc_reg_t* csc_cfg_reg,const ISP_PARAM *isp_param)
 /////NR_YUV
 void nr_yuv444(ISP_IMAGE *isp_image,nryuv_reg_t* nryuv_cfg_reg,const ISP_PARAM *isp_param);
 /////YFC
-
 #endif // ISP_PIPELINE_H

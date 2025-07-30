@@ -78,6 +78,7 @@ private slots:
 
     void on_export_param_btn_clicked();
 
+    void onProcessingFinished();
 signals:
     void finished();
 
