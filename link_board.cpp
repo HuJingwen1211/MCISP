@@ -324,8 +324,9 @@ link_board::~link_board()
     delete ui;
 }
 
-void link_board::send_cmd_data(uint8_t cmd, const uint8_t *datas, uint16_t len)
+bool link_board::send_cmd_data(uint8_t cmd, const uint8_t *datas, uint16_t len)
 {
+    // 这里可以考虑加输入参数空指针/缓冲区溢出检测
     uint8_t buf[BUFFER_SIZE];
     uint8_t i;
     uint16_t cnt=0;
@@ -342,7 +343,12 @@ void link_board::send_cmd_data(uint8_t cmd, const uint8_t *datas, uint16_t len)
     buf[cnt++] = crc16>>8;
     buf[cnt++] = crc16&0xFF;
     buf[cnt++] = 0xFF;
-    Send(buf,cnt);    //调用数据帧发送函数将打包好的数据帧发送出去
+    int ret = Send(buf,cnt);    //调用数据帧发送函数将打包好的数据帧发送出去
+    if (ret != 0) {
+        ui->echo_text->appendPlainText("发送失败，错误码: " + QString::number(ret));
+        return false;
+    }
+    return true;
 }
 
 void link_board::read_reg_process(const QByteArray &data)
@@ -442,12 +448,16 @@ int link_board::sendSerialData(const uint8_t *data, uint16_t len)
     qint64 bytesWritten = serial->write(reinterpret_cast<const char*>(data), len);
     if (bytesWritten == -1) {
         ui->echo_text->appendPlainText("串口发送失败");
+        return -2;
     } else if (bytesWritten != len) {
         ui->echo_text->appendPlainText("发送长度错误");
+        return -3;
     }
     if (!serial->waitForBytesWritten(1000)) {
         ui->echo_text->appendPlainText("串口发送延时");
+        return -4;
     }
+    ui->echo_text->appendPlainText("串口发送成功");
     return 0;
 }
 
@@ -460,12 +470,16 @@ int link_board::sendNetworkData(const uint8_t *data, uint16_t len)
     qint64 bytesWritten = tcpSocket->write(reinterpret_cast<const char*>(data), len);
     if (bytesWritten == -1) {
         ui->echo_text->appendPlainText("网络发送失败");
+        return -2;
     } else if (bytesWritten != len) {
         ui->echo_text->appendPlainText("网络发送长度错误");
+        return -3;
     }
     if (!tcpSocket->waitForBytesWritten(1000)) {
         ui->echo_text->appendPlainText("网络发送延时");
+        return -4;
     }
+    ui->echo_text->appendPlainText("网络发送成功");
     return 0;
 }
 

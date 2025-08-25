@@ -101,7 +101,7 @@ private:
 public:
     explicit link_board(QWidget *parent = 0);
     ~link_board();
-    void send_cmd_data(uint8_t cmd,const uint8_t *datas,uint16_t len);   //封装命令数据并发送
+    bool send_cmd_data(uint8_t cmd,const uint8_t *datas,uint16_t len);   //封装命令数据并发送
     void read_reg_process(const QByteArray &data);
 
 private slots:
