@@ -127,27 +127,34 @@ private slots:
 
 public:
     void set_echo_text(QString str);
-    void TEST_DoubleClicked();
-    void DPC_DoubleClicked();
-    void ENABLE_DoubleClicked();
-    void BLC_DoubleClicked();
-    void LSC_DoubleClicked();
-    void NR_RAW_DoubleClicked();
-    void AWB_DoubleClicked();
-    void GB_DoubleClicked();
-    void DMS_DoubleClicked();
-    void CCM_DoubleClicked();
-    void EE_DoubleClicked();
-    void TM_DoubleClicked();
-    void GAMMA_DoubleClicked();
-    void CSC_DoubleClicked();
-    void NR_YUV_DoubleClicked();
-    void SCALE_DoubleClicked();
-    void CROP_DoubleClicked();
-    void YFC_DoubleClicked();
-    void Debug_DoubleClicked();
-    void Capture_DoubleClicked();
+    ////////////////////////double clicked START///////////////////////////
+    // 模板函数
+    template<typename TabType>
+    void createOrSwitchToTab(const QString& displayName, std::function<void(QWidget*)> postSetup = nullptr)
+    {
+        // 检查是否已存在
+        for (int i = 0; i < ui->link_tab->count(); ++i) {
+            QWidget* tabWidget = ui->link_tab->widget(i);
+            if (dynamic_cast<TabType*>(tabWidget)) {
+                ui->link_tab->setCurrentIndex(i);
+                return;
+            }
+        }
 
+        // 创建新tab
+        TabType* tab = new TabType(this);
+        tab->setAttribute(Qt::WA_DeleteOnClose);
+        int cur = ui->link_tab->addTab(tab, displayName);
+        ui->link_tab->setCurrentIndex(cur);
+        ui->link_tab->setVisible(true);
+
+        // 执行后处理
+        if (postSetup) {
+            postSetup(tab);
+        }
+    }
+
+    ////////////////////////double clicked END///////////////////////////
 
 private:
     Ui::link_board *ui;

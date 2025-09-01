@@ -576,504 +576,81 @@ void link_board::handleNetworkConnect()
         }
     }
 }
-///////双击TreeWidget事件
+
+/////////////////////////double clicked START///////////////////////////
+
+
+
 void link_board::on_module_list_itemDoubleClicked(QTreeWidgetItem *item, int column)
 {
-    //qDebug()<<item->text(column);
-    if(item->text(column)=="TEST"){
-        TEST_DoubleClicked();
-    }else if(item->text(column)=="DPC"){
-        DPC_DoubleClicked();
+    QString moduleName = item->text(column);
+
+    if (moduleName == "TEST") {
+        createOrSwitchToTab<TEST_tab>(" TEST ", [this](QWidget* tab) {
+            connect(this, SIGNAL(test_rw_signal(QByteArray)), tab, SLOT(read_reg_process(QByteArray)));
+        });
     }
-    else if (item->text(column) == "ENABLE"){
-        ENABLE_DoubleClicked();
+    else if (moduleName == "DPC") {
+        createOrSwitchToTab<DPC_tab>(" DPC ");
     }
-    else if (item->text(column) == "BLC") {
-        BLC_DoubleClicked();
-    }else if(item->text(column) == "LSC"){
-        LSC_DoubleClicked();
+    else if (moduleName == "ENABLE") {
+        createOrSwitchToTab<ENABLE_tab>(" ENABLE ");
     }
-    else if (item->text(column) == "NR_RAW") {
-        NR_RAW_DoubleClicked();
+    else if (moduleName == "BLC") {
+        createOrSwitchToTab<BLC_tab>(" BLC ");
     }
-    else if (item->text(column) == "AWB") {
-        AWB_DoubleClicked();
+    else if (moduleName == "LSC") {
+        createOrSwitchToTab<LSC_tab>(" LSC ");
     }
-    else if (item->text(column) == "DMS") {
-        DMS_DoubleClicked();
+    else if (moduleName == "NR_RAW") {
+        createOrSwitchToTab<NR_RAW_tab>(" NR_RAW ");
     }
-    else if (item->text(column) == "CCM") {
-        CCM_DoubleClicked();
+    else if (moduleName == "AWB") {
+        createOrSwitchToTab<AWB_tab>(" AWB ", [this](QWidget* tab) {
+            connect(this, SIGNAL(awbc_read_done(QByteArray)), tab, SLOT(read_reg_process(QByteArray)));
+        });
     }
-    else if (item->text(column) == "EE") {
-        EE_DoubleClicked();
+    else if (moduleName == "GB") {
+        createOrSwitchToTab<GB_tab>(" GB ");
     }
-    else if (item->text(column) == "TM") {
-        TM_DoubleClicked();
+    else if (moduleName == "DMS") {
+        createOrSwitchToTab<DMS_tab>(" DMS ");
     }
-    else if (item->text(column) == "Gamma") {
-        GAMMA_DoubleClicked();
+    else if (moduleName == "CCM") {
+        createOrSwitchToTab<CCM_tab>(" CCM ");
     }
-    else if (item->text(column) == "CSC") {
-        CSC_DoubleClicked();
+    else if (moduleName == "EE") {
+        createOrSwitchToTab<EE_tab>(" EE ");
     }
-    else if (item->text(column) == "NR_YUV") {
-        NR_YUV_DoubleClicked();
+    else if (moduleName == "TM") {
+        createOrSwitchToTab<TM_tab>(" TM ");
     }
-    else if (item->text(column) == "GB") {
-        GB_DoubleClicked();
+    else if (moduleName == "Gamma") {
+        createOrSwitchToTab<GAMMA_tab>(" GAMMA ");
     }
-    else if (item->text(column) == "SCALE") {
-        SCALE_DoubleClicked();
+    else if (moduleName == "CSC") {
+        createOrSwitchToTab<CSC_tab>(" CSC ");
     }
-    else if (item->text(column) == "CROP") {
-        CROP_DoubleClicked();
+    else if (moduleName == "NR_YUV") {
+        createOrSwitchToTab<NR_YUV_tab>(" NR_YUV ");
     }
-    else if (item->text(column) == "YFC") {
-        YFC_DoubleClicked();
+    else if (moduleName == "SCALE") {
+        createOrSwitchToTab<SCALE_tab>(" SCALE ");
     }
-    else if(item->text(column) == "Debug"){
-        Debug_DoubleClicked();
+    else if (moduleName == "CROP") {
+        createOrSwitchToTab<CROP_tab>(" CROP ");
     }
-    else if(item->text(column) == "CAPTURE"){
-        Capture_DoubleClicked();
+    else if (moduleName == "YFC") {
+        createOrSwitchToTab<YFC_tab>(" YFC ");
+    }
+    else if (moduleName == "Debug") {
+        createOrSwitchToTab<Debug>(" Debug ");
+    }
+    else if (moduleName == "CAPTURE") {
+        createOrSwitchToTab<capture_tab>(" Capture ");
     }
 }
-
-
-////ENABLE
-void link_board::ENABLE_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); i++) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (ENABLE_tab* tab = dynamic_cast<ENABLE_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        ENABLE_tab* tab = new ENABLE_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        // tab->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" ENABLE "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-        // ENABLE_tab* tab = new ENABLE_tab(this);
-        // tab->setAttribute(Qt::WA_DeleteOnClose);
-
-        // // 创建一个容器 widget 并设置布局
-        // QWidget *container = new QWidget();
-        // QHBoxLayout *layout = new QHBoxLayout(container);
-        // layout->addWidget(tab, 0, Qt::AlignCenter); // 居中
-        // container->setLayout(layout);
-
-        // // 添加到 link_tab
-        // int cur = ui->link_tab->addTab(container, QString::asprintf(" ENABLE "));
-        // ui->link_tab->setCurrentIndex(cur);
-        // ui->link_tab->setVisible(true);
-    }
-}
-
-
-////////TEST
-void link_board::TEST_DoubleClicked()
-{
-    bool is_exist=0;
-    for (int i = 0; i < ui->link_tab->count(); i++) {    ///////用于设置该Tab只能有一个
-        QWidget *tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if(TEST_tab *tab=dynamic_cast<TEST_tab*>(tabWidget)){   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist=1;
-            break;
-        }
-    }
-    if(!is_exist){
-        TEST_tab *tab=new TEST_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur=ui->link_tab->addTab(tab,QString::asprintf(" TEST "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-        connect(this,SIGNAL(test_rw_signal(QByteArray)),tab,SLOT(read_reg_process(QByteArray)));
-    }
-}
-
-//////DPC
-void link_board::DPC_DoubleClicked()
-{
-    bool is_exist=0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget *tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if(DPC_tab *tab=dynamic_cast<DPC_tab*>(tabWidget)){   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist=1;
-            break;
-        }
-    }
-    if(!is_exist){
-        DPC_tab *tab=new DPC_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur=ui->link_tab->addTab(tab,QString::asprintf(" DPC "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-
-////BLC
-void link_board::BLC_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (BLC_tab* tab = dynamic_cast<BLC_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        BLC_tab* tab = new BLC_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" BLC "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-
-///LSC
-void link_board::LSC_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (LSC_tab* tab = dynamic_cast<LSC_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        LSC_tab* tab = new LSC_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" LSC "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-
-}
-
-
-///NR_RAW
-void link_board::NR_RAW_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (NR_RAW_tab* tab = dynamic_cast<NR_RAW_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        NR_RAW_tab* tab = new NR_RAW_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" NR_RAW "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-
-}
-///AWB
-void link_board::AWB_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (AWB_tab* tab = dynamic_cast<AWB_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        AWB_tab* tab = new AWB_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" AWB "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-        connect(this,SIGNAL(awbc_read_done(QByteArray)),tab,SLOT(read_reg_process(QByteArray)));
-    }
-}
-
-void link_board::GB_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (GB_tab* tab = dynamic_cast<GB_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        GB_tab* tab = new GB_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" GB "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-
-}
-
-///DMS
-void link_board::DMS_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (DMS_tab* tab = dynamic_cast<DMS_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        DMS_tab* tab = new DMS_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" DMS "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-
-///CCM
-void link_board::CCM_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (CCM_tab* tab = dynamic_cast<CCM_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        CCM_tab* tab = new CCM_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" CCM "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-///EE
-void link_board::EE_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (EE_tab* tab = dynamic_cast<EE_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        EE_tab* tab = new EE_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" EE "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-///TM
-void link_board::TM_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (TM_tab* tab = dynamic_cast<TM_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        TM_tab* tab = new TM_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" TM "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-///GAMMA
-void link_board::GAMMA_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (GAMMA_tab* tab = dynamic_cast<GAMMA_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        GAMMA_tab* tab = new GAMMA_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" GAMMA "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-///CSC
-void link_board::CSC_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (CSC_tab* tab = dynamic_cast<CSC_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        CSC_tab* tab = new CSC_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" CSC "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-///NR_YUV
-void link_board::NR_YUV_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (NR_YUV_tab* tab = dynamic_cast<NR_YUV_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        NR_YUV_tab* tab = new NR_YUV_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" NR_YUV "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-//SCALE
-void link_board::SCALE_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (SCALE_tab* tab = dynamic_cast<SCALE_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        SCALE_tab* tab = new SCALE_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" SCALE "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-
-//CROP
-void link_board::CROP_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (CROP_tab* tab = dynamic_cast<CROP_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        CROP_tab* tab = new CROP_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" CROP "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-
-//YFC
-void link_board::YFC_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (YFC_tab* tab = dynamic_cast<YFC_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);     /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        YFC_tab* tab = new YFC_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" YFC "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-
-
-//DEBUG
-void link_board::Debug_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (Debug* tab = dynamic_cast<Debug*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);            /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        Debug* tab = new Debug(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" Debug "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-
-void link_board::Capture_DoubleClicked()
-{
-    bool is_exist = 0;
-    for (int i = 0; i < ui->link_tab->count(); ++i) {    ///////用于设置该Tab只能有一个
-        QWidget* tabWidget = ui->link_tab->widget(i);    /////用了以后不能delete因为是指针
-        if (capture_tab* tab = dynamic_cast<capture_tab*>(tabWidget)) {   ///遍历当前Tab判断是否已经存在,如果动态转换成功则表示有该类型
-            ui->link_tab->setCurrentIndex(i);            /////如果之前创建了就定位到之前的tab
-            is_exist = 1;
-            break;
-        }
-    }
-    if (!is_exist) {
-        capture_tab* tab = new capture_tab(this);
-        tab->setAttribute(Qt::WA_DeleteOnClose);
-        int cur = ui->link_tab->addTab(tab, QString::asprintf(" Capture "));
-        ui->link_tab->setCurrentIndex(cur);
-        ui->link_tab->setVisible(true);
-    }
-}
-
+///////////////////////////double clicked END///////////////////////////////////
 //////关闭Tab时清除内存
 void link_board::on_link_tab_tabCloseRequested(int index)
 {
@@ -1185,21 +762,6 @@ void link_board::exportAllConfig()
 
     // 定义所有模块名称
     QStringList allModules = ConfigurableTab::defaultParams.keys();
-
-    // // 遍历所有打开的tab
-    // for (int i = 0; i < ui->link_tab->count(); i++) {
-    //     QWidget* tabWidget = ui->link_tab->widget(i);
-
-    //     // 尝试转换为ConfigurableTab基类
-    //     if (ConfigurableTab* configTab = dynamic_cast<ConfigurableTab*>(tabWidget)) {
-    //         out << "# " << configTab->getModuleName() << "\n";
-    //         QMap<QString, int> params = configTab->getAllParams();
-    //         for (auto it = params.begin(); it != params.end(); ++it) {
-    //             out << it.key() << " = " << it.value() << "\n";
-    //         }
-    //         out << "#####\n\n";
-    //     }
-    // }
 
     // 遍历所有模块
     for (const QString& moduleName : allModules) {
@@ -1348,30 +910,56 @@ void link_board::openAllModuleTabs()
 {
     QStringList allModules = ConfigurableTab::defaultParams.keys();
 
-    // 使用映射表，自动处理所有模块
-    static const QMap<QString, void (link_board::*)()> moduleOpenFunctions = {
-        {"BLC", &link_board::BLC_DoubleClicked},
-        {"LSC", &link_board::LSC_DoubleClicked},
-        {"NR_RAW", &link_board::NR_RAW_DoubleClicked},
-        {"AWB", &link_board::AWB_DoubleClicked},
-        {"CCM", &link_board::CCM_DoubleClicked},
-        {"NR_YUV", &link_board::NR_YUV_DoubleClicked},
-        {"DPC", &link_board::DPC_DoubleClicked},
-        {"GB", &link_board::GB_DoubleClicked},
-        {"DMS", &link_board::DMS_DoubleClicked},
-        {"EE", &link_board::EE_DoubleClicked},
-        {"TM", &link_board::TM_DoubleClicked},
-        {"GAMMA", &link_board::GAMMA_DoubleClicked},
-        {"CSC", &link_board::CSC_DoubleClicked},
-        {"SCALE", &link_board::SCALE_DoubleClicked},
-        {"CROP", &link_board::CROP_DoubleClicked},
-        {"YFC", &link_board::YFC_DoubleClicked}
-    };
-
     for (const QString& moduleName : allModules) {
-        auto func = moduleOpenFunctions.value(moduleName);
-        if (func) {
-            (this->*func)();
+        if (moduleName == "BLC") {
+            createOrSwitchToTab<BLC_tab>(" BLC ");
+        }
+        else if (moduleName == "LSC") {
+            createOrSwitchToTab<LSC_tab>(" LSC ");
+        }
+        else if (moduleName == "NR_RAW") {
+            createOrSwitchToTab<NR_RAW_tab>(" NR_RAW ");
+        }
+        else if (moduleName == "AWB") {
+            createOrSwitchToTab<AWB_tab>(" AWB ", [this](QWidget* tab) {
+                connect(this, SIGNAL(awbc_read_done(QByteArray)), tab, SLOT(read_reg_process(QByteArray)));
+            });
+        }
+        else if (moduleName == "CCM") {
+            createOrSwitchToTab<CCM_tab>(" CCM ");
+        }
+        else if (moduleName == "NR_YUV") {
+            createOrSwitchToTab<NR_YUV_tab>(" NR_YUV ");
+        }
+        else if (moduleName == "DPC") {
+            createOrSwitchToTab<DPC_tab>(" DPC ");
+        }
+        else if (moduleName == "GB") {
+            createOrSwitchToTab<GB_tab>(" GB ");
+        }
+        else if (moduleName == "DMS") {
+            createOrSwitchToTab<DMS_tab>(" DMS ");
+        }
+        else if (moduleName == "EE") {
+            createOrSwitchToTab<EE_tab>(" EE ");
+        }
+        else if (moduleName == "TM") {
+            createOrSwitchToTab<TM_tab>(" TM ");
+        }
+        else if (moduleName == "GAMMA") {
+            createOrSwitchToTab<GAMMA_tab>(" GAMMA ");
+        }
+        else if (moduleName == "CSC") {
+            createOrSwitchToTab<CSC_tab>(" CSC ");
+        }
+        else if (moduleName == "SCALE") {
+            createOrSwitchToTab<SCALE_tab>(" SCALE ");
+        }
+        else if (moduleName == "CROP") {
+            createOrSwitchToTab<CROP_tab>(" CROP ");
+        }
+        else if (moduleName == "YFC") {
+            createOrSwitchToTab<YFC_tab>(" YFC ");
         }
     }
 }
