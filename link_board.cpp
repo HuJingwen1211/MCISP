@@ -385,7 +385,7 @@ void link_board::read_reg_process(const QByteArray &data)
 
 
 
-void link_board::handle_redy_read()
+void link_board::handle_ready_read()
 {
     QByteArray receivedData;
     if (isNetworkMode) {
@@ -517,7 +517,7 @@ void link_board::handleSerialConnect()
         ui->link_btn->setText(tr("Disconnect"));
         ui->link_btn->setStyleSheet("background: #38815c;");
         ///ui->sendButton->setEnabled(true);
-        connect(serial, SIGNAL(readyRead()), this, SLOT(handle_redy_read()));
+        connect(serial, SIGNAL(readyRead()), this, SLOT(handle_ready_read()));
 
     }else if(ui->link_btn->text()==tr("Disconnect")){
         //关闭串口
@@ -558,7 +558,7 @@ void link_board::handleNetworkConnect()
             ui->ip_lineEdit->setEnabled(true);
             ui->tcp_port_spinBox->setEnabled(true);
         });
-        connect(tcpSocket, &QTcpSocket::readyRead, this, &link_board::handle_redy_read);
+        connect(tcpSocket, &QTcpSocket::readyRead, this, &link_board::handle_ready_read);
         // connect(tcpSocket, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::error),
         //         this, [this](QAbstractSocket::SocketError) {
         //             ui->echo_text->appendPlainText(QString("网络错误: %1").arg(tcpSocket->errorString()));
@@ -585,70 +585,7 @@ void link_board::on_module_list_itemDoubleClicked(QTreeWidgetItem *item, int col
 {
     QString moduleName = item->text(column);
 
-    if (moduleName == "TEST") {
-        createOrSwitchToTab<TEST_tab>(" TEST ", [this](QWidget* tab) {
-            connect(this, SIGNAL(test_rw_signal(QByteArray)), tab, SLOT(read_reg_process(QByteArray)));
-        });
-    }
-    else if (moduleName == "DPC") {
-        createOrSwitchToTab<DPC_tab>(" DPC ");
-    }
-    else if (moduleName == "ENABLE") {
-        createOrSwitchToTab<ENABLE_tab>(" ENABLE ");
-    }
-    else if (moduleName == "BLC") {
-        createOrSwitchToTab<BLC_tab>(" BLC ");
-    }
-    else if (moduleName == "LSC") {
-        createOrSwitchToTab<LSC_tab>(" LSC ");
-    }
-    else if (moduleName == "NR_RAW") {
-        createOrSwitchToTab<NR_RAW_tab>(" NR_RAW ");
-    }
-    else if (moduleName == "AWB") {
-        createOrSwitchToTab<AWB_tab>(" AWB ", [this](QWidget* tab) {
-            connect(this, SIGNAL(awbc_read_done(QByteArray)), tab, SLOT(read_reg_process(QByteArray)));
-        });
-    }
-    else if (moduleName == "GB") {
-        createOrSwitchToTab<GB_tab>(" GB ");
-    }
-    else if (moduleName == "DMS") {
-        createOrSwitchToTab<DMS_tab>(" DMS ");
-    }
-    else if (moduleName == "CCM") {
-        createOrSwitchToTab<CCM_tab>(" CCM ");
-    }
-    else if (moduleName == "EE") {
-        createOrSwitchToTab<EE_tab>(" EE ");
-    }
-    else if (moduleName == "TM") {
-        createOrSwitchToTab<TM_tab>(" TM ");
-    }
-    else if (moduleName == "Gamma") {
-        createOrSwitchToTab<GAMMA_tab>(" GAMMA ");
-    }
-    else if (moduleName == "CSC") {
-        createOrSwitchToTab<CSC_tab>(" CSC ");
-    }
-    else if (moduleName == "NR_YUV") {
-        createOrSwitchToTab<NR_YUV_tab>(" NR_YUV ");
-    }
-    else if (moduleName == "SCALE") {
-        createOrSwitchToTab<SCALE_tab>(" SCALE ");
-    }
-    else if (moduleName == "CROP") {
-        createOrSwitchToTab<CROP_tab>(" CROP ");
-    }
-    else if (moduleName == "YFC") {
-        createOrSwitchToTab<YFC_tab>(" YFC ");
-    }
-    else if (moduleName == "Debug") {
-        createOrSwitchToTab<Debug>(" Debug ");
-    }
-    else if (moduleName == "CAPTURE") {
-        createOrSwitchToTab<capture_tab>(" Capture ");
-    }
+    createModuleTab(moduleName);
 }
 ///////////////////////////double clicked END///////////////////////////////////
 //////关闭Tab时清除内存
@@ -905,62 +842,82 @@ bool link_board::setParamsToTab(const QString& moduleName, const QMap<QString, i
     ui->echo_text->appendPlainText(QString("警告: 未找到模块 '%1' 的tab，请先打开该模块").arg(moduleName));
     return false;
 }
+// 一个通用函数处理所有模块创建
+void link_board::createModuleTab(const QString& moduleName)
+{
+    if (moduleName == "TEST") {
+        createOrSwitchToTab<TEST_tab>(" TEST ", [this](QWidget* tab) {
+            connect(this, SIGNAL(test_rw_signal(QByteArray)), tab, SLOT(read_reg_process(QByteArray)));
+        });
+    }
+    else if (moduleName == "DPC") {
+        createOrSwitchToTab<DPC_tab>(" DPC ");
+    }
+    else if (moduleName == "ENABLE") {
+        createOrSwitchToTab<ENABLE_tab>(" ENABLE ");
+    }
+    else if (moduleName == "BLC") {
+        createOrSwitchToTab<BLC_tab>(" BLC ");
+    }
+    else if (moduleName == "LSC") {
+        createOrSwitchToTab<LSC_tab>(" LSC ");
+    }
+    else if (moduleName == "NR_RAW") {
+        createOrSwitchToTab<NR_RAW_tab>(" NR_RAW ");
+    }
+    else if (moduleName == "AWB") {
+        createOrSwitchToTab<AWB_tab>(" AWB ", [this](QWidget* tab) {
+            connect(this, SIGNAL(awbc_read_done(QByteArray)), tab, SLOT(read_reg_process(QByteArray)));
+        });
+    }
+    else if (moduleName == "GB") {
+        createOrSwitchToTab<GB_tab>(" GB ");
+    }
+    else if (moduleName == "DMS") {
+        createOrSwitchToTab<DMS_tab>(" DMS ");
+    }
+    else if (moduleName == "CCM") {
+        createOrSwitchToTab<CCM_tab>(" CCM ");
+    }
+    else if (moduleName == "EE") {
+        createOrSwitchToTab<EE_tab>(" EE ");
+    }
+    else if (moduleName == "TM") {
+        createOrSwitchToTab<TM_tab>(" TM ");
+    }
+    else if (moduleName == "Gamma") {
+        createOrSwitchToTab<GAMMA_tab>(" GAMMA ");
+    }
+    else if (moduleName == "CSC") {
+        createOrSwitchToTab<CSC_tab>(" CSC ");
+    }
+    else if (moduleName == "NR_YUV") {
+        createOrSwitchToTab<NR_YUV_tab>(" NR_YUV ");
+    }
+    else if (moduleName == "SCALE") {
+        createOrSwitchToTab<SCALE_tab>(" SCALE ");
+    }
+    else if (moduleName == "CROP") {
+        createOrSwitchToTab<CROP_tab>(" CROP ");
+    }
+    else if (moduleName == "YFC") {
+        createOrSwitchToTab<YFC_tab>(" YFC ");
+    }
+    else if (moduleName == "Debug") {
+        createOrSwitchToTab<Debug>(" Debug ");
+    }
+    else if (moduleName == "CAPTURE") {
+        createOrSwitchToTab<capture_tab>(" Capture ");
+    }
+}
+
+
 
 void link_board::openAllModuleTabs()
 {
     QStringList allModules = ConfigurableTab::defaultParams.keys();
-
     for (const QString& moduleName : allModules) {
-        if (moduleName == "BLC") {
-            createOrSwitchToTab<BLC_tab>(" BLC ");
-        }
-        else if (moduleName == "LSC") {
-            createOrSwitchToTab<LSC_tab>(" LSC ");
-        }
-        else if (moduleName == "NR_RAW") {
-            createOrSwitchToTab<NR_RAW_tab>(" NR_RAW ");
-        }
-        else if (moduleName == "AWB") {
-            createOrSwitchToTab<AWB_tab>(" AWB ", [this](QWidget* tab) {
-                connect(this, SIGNAL(awbc_read_done(QByteArray)), tab, SLOT(read_reg_process(QByteArray)));
-            });
-        }
-        else if (moduleName == "CCM") {
-            createOrSwitchToTab<CCM_tab>(" CCM ");
-        }
-        else if (moduleName == "NR_YUV") {
-            createOrSwitchToTab<NR_YUV_tab>(" NR_YUV ");
-        }
-        else if (moduleName == "DPC") {
-            createOrSwitchToTab<DPC_tab>(" DPC ");
-        }
-        else if (moduleName == "GB") {
-            createOrSwitchToTab<GB_tab>(" GB ");
-        }
-        else if (moduleName == "DMS") {
-            createOrSwitchToTab<DMS_tab>(" DMS ");
-        }
-        else if (moduleName == "EE") {
-            createOrSwitchToTab<EE_tab>(" EE ");
-        }
-        else if (moduleName == "TM") {
-            createOrSwitchToTab<TM_tab>(" TM ");
-        }
-        else if (moduleName == "GAMMA") {
-            createOrSwitchToTab<GAMMA_tab>(" GAMMA ");
-        }
-        else if (moduleName == "CSC") {
-            createOrSwitchToTab<CSC_tab>(" CSC ");
-        }
-        else if (moduleName == "SCALE") {
-            createOrSwitchToTab<SCALE_tab>(" SCALE ");
-        }
-        else if (moduleName == "CROP") {
-            createOrSwitchToTab<CROP_tab>(" CROP ");
-        }
-        else if (moduleName == "YFC") {
-            createOrSwitchToTab<YFC_tab>(" YFC ");
-        }
+        createModuleTab(moduleName);
     }
 }
 

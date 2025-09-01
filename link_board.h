@@ -39,6 +39,14 @@ class link_board : public QMainWindow
 {
     Q_OBJECT
 
+public:
+    explicit link_board(QWidget *parent = 0);
+    ~link_board();
+    // 公共接口
+    bool send_cmd_data(uint8_t cmd,const uint8_t *datas,uint16_t len);   //封装命令数据并发送
+    void read_reg_process(const QByteArray &data);
+    void set_echo_text(QString str);
+
 signals:
     void frameReceived(uint8_t cmd, const QByteArray &data);  // 完整帧接收信号
     void imageReceived(const QByteArray &imageData);
@@ -47,87 +55,41 @@ signals:
     void awbc_read_done(const QByteArray &regData);
 
 
-private:
-    int Send(const uint8_t *data,uint16_t len);   //串口发送
-    uint16_t CRC16_Check(const uint8_t *data,uint8_t len);  //CRC校验
-    void Receive(uint8_t byteData);  // 帧解析状态机
-    //状态机变量
-    struct {
-        uint8_t step = 0;
-        uint8_t cnt = 0;
-        uint8_t Buf[300];
-        uint8_t len = 0;
-        uint8_t cmd = 0;
-        uint8_t *data_ptr = nullptr;
-        uint16_t crc16 = 0;
-    } frameState;
-    struct ImageReception {
-        bool active = false;
-        uint32_t totalFrames = 0;
-        uint32_t receivedFrames = 0;
-        uint32_t frameDataSize = 0;
-        QVector<QByteArray> frameData;
-    };
-    void process_recv_image(const QByteArray &data);
-    void resetReception();
-    void startNewReception(uint32_t totalFrames, uint32_t frameDataSize);
-    ImageReception currentReception;
-    QByteArray partialFrame;
-
-    ///用于串口颜色判断：
-    QTextCharFormat m_currentFormat;
-    QTextCharFormat m_defaultFormat;
-    bool m_inEscapeSequence = false;
-    QString m_escapeSequence;
-    void processColorByte(uint8_t byte);
-    void resetColorFormat();
-    void applyAnsiColorFormat(const QString &ansiCode);
-    void appendChar(char c);
-
-
-    void exportAllConfig();
-    void importAllConfig();
-    bool setParamsToTab(const QString& moduleName, const QMap<QString, int>& params);
-    void openAllModuleTabs();
-
-    // 分发函数（根据isNetworkMode调用的不同实现）
-    void handleSerialConnect();
-    void handleNetworkConnect();
-
-    int sendSerialData(const uint8_t *data, uint16_t len);
-    int sendNetworkData(const uint8_t *data, uint16_t len);
-
-
-public:
-    explicit link_board(QWidget *parent = 0);
-    ~link_board();
-    bool send_cmd_data(uint8_t cmd,const uint8_t *datas,uint16_t len);   //封装命令数据并发送
-    void read_reg_process(const QByteArray &data);
-
 private slots:
-    void handle_redy_read();
+    void handle_ready_read();
     void process_cmd_data(uint8_t cmd, const QByteArray &data);  //处理命令数据
     void on_clear_btn_clicked();
     void on_link_btn_clicked();
     void on_module_list_itemDoubleClicked(QTreeWidgetItem *item, int column);
     void on_link_tab_tabCloseRequested(int index);
     void save_image(const QByteArray &imageData);
-
     void on_import_cfg_btn_clicked();
-
     void on_export_cfg_btn_clicked();
-
     void on_boot_cfg_btn_clicked();
-
     void printTimeStamp();
-
     void on_serial_radio_toggled(bool checked);
-
     void on_network_radio_toggled(bool checked);
 
-public:
-    void set_echo_text(QString str);
-    ////////////////////////double clicked START///////////////////////////
+private:
+    int Send(const uint8_t *data,uint16_t len);   //串口发送
+    uint16_t CRC16_Check(const uint8_t *data,uint8_t len);  //CRC校验
+    void Receive(uint8_t byteData);  // 帧解析状态机
+    void process_recv_image(const QByteArray &data);
+    void resetReception();
+    void startNewReception(uint32_t totalFrames, uint32_t frameDataSize);
+    void processColorByte(uint8_t byte);
+    void resetColorFormat();
+    void applyAnsiColorFormat(const QString &ansiCode);
+    void appendChar(char c);
+    void exportAllConfig();
+    void importAllConfig();
+    bool setParamsToTab(const QString& moduleName, const QMap<QString, int>& params);
+    void createModuleTab(const QString& moduleName);
+    void openAllModuleTabs();
+    void handleSerialConnect();
+    void handleNetworkConnect();
+    int sendSerialData(const uint8_t *data, uint16_t len);
+    int sendNetworkData(const uint8_t *data, uint16_t len);
     // 模板函数
     template<typename TabType>
     void createOrSwitchToTab(const QString& displayName, std::function<void(QWidget*)> postSetup = nullptr)
@@ -154,13 +116,39 @@ public:
         }
     }
 
-    ////////////////////////double clicked END///////////////////////////
+    //状态机变量
+    struct {
+        uint8_t step = 0;
+        uint8_t cnt = 0;
+        uint8_t Buf[300];
+        uint8_t len = 0;
+        uint8_t cmd = 0;
+        uint8_t *data_ptr = nullptr;
+        uint16_t crc16 = 0;
+    } frameState;
+    struct ImageReception {
+        bool active = false;
+        uint32_t totalFrames = 0;
+        uint32_t receivedFrames = 0;
+        uint32_t frameDataSize = 0;
+        QVector<QByteArray> frameData;
+    };
 
 private:
     Ui::link_board *ui;
     QTcpSocket* tcpSocket = nullptr;
     QSerialPort* serial = nullptr;   ////串口对象
     bool isNetworkMode = false; // 可选，用于区分当前模式
+    ////////////////////////状态机变量///////////////////////////
+    ImageReception currentReception;
+    QByteArray partialFrame;
+    ///用于串口颜色判断：
+    QTextCharFormat m_currentFormat;
+    QTextCharFormat m_defaultFormat;
+    bool m_inEscapeSequence = false;
+    QString m_escapeSequence;
+
+
 };
 
 
