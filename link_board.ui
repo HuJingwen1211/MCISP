@@ -46,7 +46,7 @@
         </font>
        </property>
        <property name="title">
-        <string>OPtion</string>
+        <string>OPTION</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">

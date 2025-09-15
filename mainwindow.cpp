@@ -4,6 +4,7 @@
 #include "rgb_viewer.h"
 #include "yuv_viewer.h"
 #include "link_board.h"
+#include "xml_module_tab.h"
 #include <QPainter>
 #include <QActionGroup>
 #include <QLabel>
@@ -454,7 +455,22 @@ void MainWindow::on_act_linkboard_triggered()
         ui->Tab_MainWindow->setVisible(true);
     }
 }
-
+void MainWindow::on_actionXML_Module_Tool_triggered()
+{
+	int tabcnt = ui->Tab_MainWindow->count();
+	for (int i = 0; i < tabcnt; ++i) {
+		QWidget *tabWidget = ui->Tab_MainWindow->widget(i);
+		if (dynamic_cast<XMLModuleTab*>(tabWidget)) {
+			ui->Tab_MainWindow->setCurrentIndex(i);
+			return;
+		}
+	}
+	XMLModuleTab *tab = new XMLModuleTab(this);
+	tab->setAttribute(Qt::WA_DeleteOnClose);
+	int cur = ui->Tab_MainWindow->addTab(tab, QString::asprintf("XML Module Tool"));
+	ui->Tab_MainWindow->setCurrentIndex(cur);
+	ui->Tab_MainWindow->setVisible(true);
+}
 void MainWindow::on_act_About_triggered()
 {
     //构建富文本信息
@@ -579,7 +595,6 @@ void MainWindow::on_act_About_triggered()
     // 9. 执行对话框
     dialog.exec();
 }
-
 
 void MainWindow::on_actionUser_Manual_triggered()
 {

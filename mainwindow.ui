@@ -92,7 +92,7 @@
      <x>0</x>
      <y>0</y>
      <width>1080</width>
-     <height>20</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -112,6 +112,8 @@
     <addaction name="act_RGB_Viewer"/>
     <addaction name="separator"/>
     <addaction name="act_linkboard"/>
+    <addaction name="separator"/>
+    <addaction name="actionXML_Module_Tool"/>
     <addaction name="separator"/>
     <addaction name="act_Exit"/>
    </widget>
@@ -272,6 +274,17 @@
   <action name="actionhu">
    <property name="text">
     <string>胡菁文</string>
+   </property>
+  </action>
+  <action name="actionXML_Module_Tool">
+   <property name="text">
+    <string>XML Module Tool</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
  </widget>

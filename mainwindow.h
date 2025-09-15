@@ -31,6 +31,7 @@ private slots:
     void on_act_YUV_Viewer_triggered();
     void on_act_linkboard_triggered();
     void on_act_About_triggered();
+    void on_actionXML_Module_Tool_triggered();
 
     void on_actionUser_Manual_triggered();
 

@@ -32,6 +32,8 @@ CONFIG(release, debug|release) {
 
 
 SOURCES += \
+    ConfigXML/xml_config_parser.cpp \
+    ConfigXML/xml_ui_builder.cpp \
     Link_tab/awb_tab.cpp \
     Link_tab/blc_tab.cpp \
     Link_tab/capture_tab.cpp \
@@ -59,6 +61,7 @@ SOURCES += \
     my_graphicsview.cpp \
     Dialog/dgain_dialog.cpp \
     rgb_viewer.cpp \
+    xml_module_tab.cpp \
     yuv_viewer.cpp \
     Dialog/nlm_nr_dialog.cpp \
     Dialog/ccm_dialog.cpp \
@@ -75,6 +78,8 @@ SOURCES += \
     Link_tab/dpc_tab.cpp
 
 HEADERS += \
+    ConfigXML/xml_config_parser.h \
+    ConfigXML/xml_ui_builder.h \
     Link_tab/awb_tab.h \
     Link_tab/blc_tab.h \
     Link_tab/capture_tab.h \
@@ -101,6 +106,7 @@ HEADERS += \
     my_graphicsview.h \
     Dialog/dgain_dialog.h \
     rgb_viewer.h \
+    xml_module_tab.h \
     yuv_viewer.h \
     Dialog/nlm_nr_dialog.h \
     Dialog/ccm_dialog.h \
@@ -139,6 +145,7 @@ FORMS += \
     isp_tunning.ui \
     Dialog/dgain_dialog.ui \
     rgb_viewer.ui \
+    xml_module_tab.ui \
     yuv_viewer.ui \
     Dialog/nlm_nr_dialog.ui \
     Dialog/ccm_dialog.ui \
