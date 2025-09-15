@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>XMLModuleTab</class>
- <widget class="QWidget" name="XMLModuleTab">
+ <widget class="QMainWindow" name="XMLModuleTab">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -19,209 +19,261 @@
   <property name="windowTitle">
    <string>XML Module Tab</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_6">
-   <item row="0" column="0">
-    <widget class="QSplitter" name="splitter_2">
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-     <widget class="QGroupBox" name="groupBox_2">
-      <property name="minimumSize">
-       <size>
-        <width>200</width>
-        <height>200</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>300</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="title">
-       <string>OPTION</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="0">
-        <widget class="QTreeWidget" name="module_list">
-         <property name="minimumSize">
-          <size>
-           <width>100</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>200</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <column>
-          <property name="text">
-           <string>Module</string>
-          </property>
-         </column>
-         <item>
-          <property name="text">
-           <string>TEST</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="import_cfg_btn">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>35</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Import</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="export_cfg_btn">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>35</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Export</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer_4">
-           <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="boot_cfg_btn">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>35</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Boot</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QSplitter" name="splitter">
+  <property name="toolButtonStyle">
+   <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout_6">
+    <item row="0" column="0">
+     <widget class="QSplitter" name="splitter_2">
       <property name="orientation">
-       <enum>Qt::Orientation::Vertical</enum>
+       <enum>Qt::Orientation::Horizontal</enum>
       </property>
-      <widget class="QGroupBox" name="groupBox_4">
+      <widget class="QGroupBox" name="groupBox_2">
        <property name="minimumSize">
         <size>
-         <width>0</width>
-         <height>400</height>
-        </size>
-       </property>
-       <property name="title">
-        <string>MODULE TAB</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <widget class="QTabWidget" name="link_tab">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QGroupBox" name="groupBox_3">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>100</height>
+         <width>200</width>
+         <height>200</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>16777215</width>
-         <height>300</height>
+         <width>200</width>
+         <height>16777215</height>
         </size>
        </property>
        <property name="title">
-        <string>LOG</string>
+        <string>OPTION</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout_5">
+       <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
-         <widget class="QPlainTextEdit" name="echo_text">
-          <property name="readOnly">
-           <bool>true</bool>
+         <widget class="QTreeWidget" name="module_list">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
           </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <column>
+           <property name="text">
+            <string>Module</string>
+           </property>
+          </column>
+          <item>
+           <property name="text">
+            <string>TEST</string>
+           </property>
+          </item>
          </widget>
         </item>
        </layout>
       </widget>
+      <widget class="QSplitter" name="splitter">
+       <property name="orientation">
+        <enum>Qt::Orientation::Vertical</enum>
+       </property>
+       <widget class="QGroupBox" name="groupBox_4">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>400</height>
+         </size>
+        </property>
+        <property name="title">
+         <string>MODULE TAB</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
+          <widget class="QTabWidget" name="link_tab">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>300</height>
+         </size>
+        </property>
+        <property name="title">
+         <string>LOG</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="0" column="0">
+          <widget class="QPlainTextEdit" name="echo_text">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
      </widget>
-    </widget>
-   </item>
-  </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="connect_action"/>
+   <addaction name="refresh_action"/>
+   <addaction name="separator"/>
+   <addaction name="all_read_action"/>
+   <addaction name="all_write_action"/>
+   <addaction name="separator"/>
+   <addaction name="import_xml_action"/>
+   <addaction name="export_xml_action"/>
+   <addaction name="separator"/>
+   <addaction name="actionimport_Config"/>
+   <addaction name="actionexport_Config"/>
+  </widget>
+  <action name="connect_action">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::InsertLink"/>
+   </property>
+   <property name="text">
+    <string>Connect</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="refresh_action">
+   <property name="icon">
+    <iconset theme="emblem-synchronized"/>
+   </property>
+   <property name="text">
+    <string>Refresh</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="all_read_action">
+   <property name="icon">
+    <iconset theme="media-tape"/>
+   </property>
+   <property name="text">
+    <string>All Read</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="all_write_action">
+   <property name="icon">
+    <iconset theme="mail-message-new"/>
+   </property>
+   <property name="text">
+    <string>All Write</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="import_xml_action">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
+   </property>
+   <property name="text">
+    <string>Import XML</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="export_xml_action">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
+   </property>
+   <property name="text">
+    <string>Export XML</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionimport_Config">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
+   </property>
+   <property name="text">
+    <string>Import Config</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionexport_Config">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
+   </property>
+   <property name="text">
+    <string>Export Config</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="separator">
+   <property name="separator" stdset="0">
+    <bool>true</bool>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

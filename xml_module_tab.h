@@ -1,13 +1,13 @@
 #ifndef XML_MODULE_TAB_H
 #define XML_MODULE_TAB_H
 
-#include <QWidget>
+#include <QMainWindow>
 
 namespace Ui {
 class XMLModuleTab;
 }
 
-class XMLModuleTab : public QWidget
+class XMLModuleTab : public QMainWindow
 {
     Q_OBJECT
 
