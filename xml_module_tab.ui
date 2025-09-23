@@ -90,13 +90,20 @@
         </property>
         <layout class="QGridLayout" name="gridLayout_4">
          <item row="0" column="0">
-          <widget class="QTabWidget" name="link_tab">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
+          <widget class="QScrollArea" name="scrollArea">
+           <property name="widgetResizable">
+            <bool>true</bool>
            </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>775</width>
+              <height>363</height>
+             </rect>
+            </property>
+           </widget>
           </widget>
          </item>
         </layout>
@@ -154,8 +161,8 @@
    <addaction name="import_xml_action"/>
    <addaction name="export_xml_action"/>
    <addaction name="separator"/>
-   <addaction name="actionimport_Config"/>
-   <addaction name="actionexport_Config"/>
+   <addaction name="import_config_action"/>
+   <addaction name="export_config_action"/>
   </widget>
   <action name="connect_action">
    <property name="icon">
@@ -241,7 +248,7 @@
     </font>
    </property>
   </action>
-  <action name="actionimport_Config">
+  <action name="import_config_action">
    <property name="icon">
     <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
    </property>
@@ -255,7 +262,7 @@
     </font>
    </property>
   </action>
-  <action name="actionexport_Config">
+  <action name="export_config_action">
    <property name="icon">
     <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
    </property>
