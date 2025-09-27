@@ -65,11 +65,6 @@
             <string>Module</string>
            </property>
           </column>
-          <item>
-           <property name="text">
-            <string>TEST</string>
-           </property>
-          </item>
          </widget>
         </item>
        </layout>
@@ -99,8 +94,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>775</width>
-              <height>363</height>
+              <width>789</width>
+              <height>373</height>
              </rect>
             </property>
            </widget>
@@ -155,14 +150,14 @@
    <addaction name="connect_action"/>
    <addaction name="refresh_action"/>
    <addaction name="separator"/>
-   <addaction name="all_read_action"/>
-   <addaction name="all_write_action"/>
-   <addaction name="separator"/>
    <addaction name="import_xml_action"/>
    <addaction name="export_xml_action"/>
    <addaction name="separator"/>
    <addaction name="import_config_action"/>
    <addaction name="export_config_action"/>
+   <addaction name="separator"/>
+   <addaction name="all_read_action"/>
+   <addaction name="all_write_action"/>
   </widget>
   <action name="connect_action">
    <property name="icon">

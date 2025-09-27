@@ -139,7 +139,7 @@ private:
     QTcpSocket* tcpSocket = nullptr;
     QSerialPort* serial = nullptr;   ////串口对象
     bool isNetworkMode = false; // 可选，用于区分当前模式
-    ////////////////////////状态机变量///////////////////////////
+    
     ImageReception currentReception;
     QByteArray partialFrame;
     ///用于串口颜色判断：
