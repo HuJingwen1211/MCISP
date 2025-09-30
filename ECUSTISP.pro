@@ -56,6 +56,7 @@ SOURCES += \
         mainwindow.cpp \
     isp_tunning.cpp \
     isp_pipeline.cpp \
+    module_edit_dialog.cpp \
     my_graphicsview.cpp \
     Dialog/dgain_dialog.cpp \
     rgb_viewer.cpp \
@@ -99,9 +100,11 @@ HEADERS += \
         mainwindow.h \
     isp_tunning.h \
     isp_pipeline.h \
+    module_edit_dialog.h \
     my_graphicsview.h \
     Dialog/dgain_dialog.h \
     rgb_viewer.h \
+    xml_config.h \
     xml_module_tab.h \
     yuv_viewer.h \
     Dialog/nlm_nr_dialog.h \

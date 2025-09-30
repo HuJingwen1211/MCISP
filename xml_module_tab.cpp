@@ -1,5 +1,6 @@
 #include "xml_module_tab.h"
 #include "ui_xml_module_tab.h"
+#include "module_edit_dialog.h"
 #include <QGroupBox>
 #include <QPushButton>
 #include <QLabel>
@@ -12,19 +13,23 @@
 #include <QTimer>
 #include <QXmlStreamReader>
 #include <QToolButton>
-
+#include <QDebug>
+#include <QInputDialog>
+#include <QHeaderView>
 XMLModuleTab::XMLModuleTab(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::XMLModuleTab)
     , m_connected(false)
-    , m_moduleLayout(nullptr)
 {
     ui->setupUi(this);
-
+    ui->add_module_btn->setVisible(false);
 
     connect(ui->connect_action,       &QAction::triggered, this, &XMLModuleTab::connectToBoard);
+    // connect(ui->connect_action,    &QAction::triggered, this, &XMLModuleTab::disconnectFromBoard);
+    connect(ui->edit_mode_action,     &QAction::triggered, this, &XMLModuleTab::setEditMode);
+    connect(ui->refresh_action,       &QAction::triggered, this, &XMLModuleTab::refresh);
     connect(ui->import_xml_action,    &QAction::triggered, this, &XMLModuleTab::importXML);
-    // connect(ui->export_xml_action,    &QAction::triggered, this, &XMLModuleTab::exportXml);
+    connect(ui->export_xml_action,    &QAction::triggered, this, &XMLModuleTab::exportXml);
     connect(ui->import_config_action, &QAction::triggered, this, &XMLModuleTab::importConfig);
     connect(ui->export_config_action, &QAction::triggered, this, &XMLModuleTab::exportConfig);
     connect(ui->all_read_action,      &QAction::triggered, this, &XMLModuleTab::allRead);
@@ -33,9 +38,12 @@ XMLModuleTab::XMLModuleTab(QWidget *parent)
 
     connect(ui->module_list,          &QTreeWidget::itemDoubleClicked, this, &XMLModuleTab::onModuleTreeDoubleClicked);
 
-    m_moduleLayout = new QVBoxLayout(ui->scrollAreaWidgetContents);
-    m_moduleLayout->addStretch();
+    connect(ui->add_module_btn,       &QToolButton::clicked, this, &XMLModuleTab::addNewModule);
 
+
+    // 关键：给scrollAreaWidgetContents设置布局
+    ui->scrollAreaWidgetContents->setLayout(new QVBoxLayout());
+    
 }
 
 XMLModuleTab::~XMLModuleTab()
@@ -51,6 +59,28 @@ void XMLModuleTab::connectToBoard()
     // 弹出连接对话框
     // 复用link_board的连接对话框，可以选择串口或网络连接
 }
+
+void XMLModuleTab::disconnectFromBoard()
+{
+    // 断开连接
+}
+
+void XMLModuleTab::setEditMode()
+{
+    // 设置编辑模式
+    m_isEditMode = !m_isEditMode;
+
+    ui->edit_mode_action->setText(m_isEditMode ? tr("Exit Edit") : tr("Edit Mode"));
+    ui->add_module_btn->setVisible(m_isEditMode);
+    generateUI();
+}
+
+void XMLModuleTab::refresh()
+{
+    // 刷新
+}
+
+
 
 void XMLModuleTab::importXML()
 {
@@ -73,17 +103,16 @@ void XMLModuleTab::importXML()
     file.close();
     if (parseXML(data)) {
         generateUI();
-        if (ui->echo_text) {
-            ui->echo_text->appendPlainText(QString("[%1] Imported XML: %2")
-                .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"), path));
-        }
-        // QMessageBox::information(this, tr("Success"), tr("XML imported:\n%1").arg(path));
-
+        printLog(QString("Imported XML: %1").arg(path));
     } else {
         QMessageBox::warning(this, tr("Warning"), tr("Failed to parse XML: %1").arg(path));
+        printLog(QString("Failed to parse XML: %1").arg(path));
     }
 }
-
+void XMLModuleTab::exportXml()
+{
+    // 导出XML
+}
 void XMLModuleTab::importConfig()
 {
     // 导入配置
@@ -151,7 +180,12 @@ void XMLModuleTab::onModuleTreeDoubleClicked(QTreeWidgetItem *item, int column)
     Q_UNUSED(column);
     if (!item) return;
 
-    const QString targetTitle = item->text(0);
+    QString targetTitle;
+    if (item->parent()) {
+        targetTitle = item->parent()->text(0);
+    } else {
+        targetTitle = item->text(0);
+    }
     QWidget* container = ui->scrollAreaWidgetContents;
     if (!container) return;
 
@@ -175,18 +209,18 @@ void XMLModuleTab::onModuleTreeDoubleClicked(QTreeWidgetItem *item, int column)
 void XMLModuleTab::printXMLConfig()
 {
     // 打印解析结果
-    ui->echo_text->appendPlainText(QString("=== 解析结果 ==="));
-    ui->echo_text->appendPlainText(QString("模块总数: %1").arg(m_xmlConfig.modules.size()));
-    ui->echo_text->appendPlainText(QString("模块顺序: %1").arg(m_xmlConfig.moduleOrder.join(", ")));
-    ui->echo_text->appendPlainText("");
+    printLog(QString("=== 解析结果 ==="));
+    printLog(QString("模块总数: %1").arg(m_xmlConfig.modules.size()));
+    printLog(QString("模块顺序: %1").arg(m_xmlConfig.moduleOrder.join(", ")));
+    printLog("");
     
     // 详细打印每个模块
     for (const Module& module : m_xmlConfig.modules) {
-        ui->echo_text->appendPlainText(QString("模块: %1").arg(module.moduleName));
-        ui->echo_text->appendPlainText(QString("  参数数量: %1").arg(module.params.size()));
+        printLog(QString("模块: %1").arg(module.moduleName));
+        printLog(QString("  参数数量: %1").arg(module.params.size()));
         
         for (const Param& param : module.params) {
-            ui->echo_text->appendPlainText(QString("    - %1: min=%2, max=%3, default=%4, addr=0x%5")
+            printLog(QString("    - %1: min=%2, max=%3, default=%4, addr=0x%5")
                 .arg(param.paramName)
                 .arg(param.min)
                 .arg(param.max)
@@ -208,9 +242,63 @@ void XMLModuleTab::generateUI()
 }
 void XMLModuleTab::generateModuleTree()
 {
-    for (const QString& module : m_xmlConfig.moduleOrder) {
-        QTreeWidgetItem* item = new QTreeWidgetItem(ui->module_list);
-        item->setText(0, module);
+    ui->module_list->setColumnCount(3);
+
+    ui->module_list->setHeaderLabels({"Module", "", ""});
+    // 设置按钮列宽度
+    ui->module_list->header()->setStretchLastSection(false);
+    ui->module_list->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->module_list->header()->setSectionResizeMode(1, QHeaderView::Fixed);
+	ui->module_list->header()->setSectionResizeMode(2, QHeaderView::Fixed);
+    
+    ui->module_list->setColumnWidth(1, 20);
+    ui->module_list->setColumnWidth(2, 20);
+    for (int i = 0; i < m_xmlConfig.modules.size(); i++) {
+        const Module& module = m_xmlConfig.modules[i];
+        QTreeWidgetItem* moduleItem = new QTreeWidgetItem(ui->module_list);
+        moduleItem->setText(0, module.moduleName);
+        
+        // edit button + delete button
+        if (m_isEditMode) {
+            QToolButton* editBtn = new QToolButton(ui->module_list);
+            editBtn->setIcon(QIcon::fromTheme("document-properties"));
+            editBtn->setStyleSheet(
+                "QToolButton {"
+                "    background-color: transparent;"
+                "    border: none;"
+                "    font-size: 16px;"
+                "}"
+            );
+            ui->module_list->setItemWidget(moduleItem, 1, editBtn);
+            // delete button
+            QToolButton* deleteBtn = new QToolButton(ui->module_list);
+            deleteBtn->setIcon(QIcon::fromTheme("edit-delete"));
+            deleteBtn->setStyleSheet(
+                "QToolButton {"
+                "    background-color: transparent;"
+                "    border: none;"
+                "    font-size: 16px;"
+                "}"
+            );
+            ui->module_list->setItemWidget(moduleItem, 2, deleteBtn);
+
+            // edit module
+            //
+            connect(editBtn, &QToolButton::clicked, this, [this, i]() {
+                Module editedModule = ModuleEditDialog::editModule(m_xmlConfig.modules[i], this);
+                if (!editedModule.moduleName.isEmpty()) {
+                    m_xmlConfig.modules[i] = editedModule;
+                    generateUI();
+                }
+            });
+            connect(deleteBtn, &QToolButton::clicked, this, [this, i]() {
+                if (QMessageBox::question(this, "Delete Module", "Are you sure you want to delete this module?", QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+                    m_xmlConfig.modules.removeAt(i);
+                    m_xmlConfig.moduleOrder.removeAt(i);
+                    generateUI();
+                }
+            });
+        }
     }
 }
 void XMLModuleTab::generateModuleGroup(const Module &module)
@@ -242,7 +330,7 @@ void XMLModuleTab::generateModuleGroup(const Module &module)
     mainLayout->addLayout(buttonLayout);
 
     // param
-    QGridLayout* paramLayout = new QGridLayout(group);
+    QGridLayout* paramLayout = new QGridLayout();
 
     int row = 0;
     for (const Param& param : module.params) {
@@ -258,8 +346,9 @@ void XMLModuleTab::generateModuleGroup(const Module &module)
     }
 
     mainLayout->addLayout(paramLayout);
+    mainLayout->addStretch();
 
-    m_moduleLayout->addWidget(group);
+    ui->scrollAreaWidgetContents->layout()->addWidget(group);
 }
 
 void XMLModuleTab::clearUI()
@@ -281,13 +370,35 @@ void XMLModuleTab::clearUI()
 
 void XMLModuleTab::readModule(QGroupBox *group)
 {
-    if (ui->echo_text) {
-        ui->echo_text->appendPlainText(QString("[%1] %2 : Read module").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"), group->title()));
-    }
+    
+    printLog(QString("[%1] %2 : Read module").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"), group->title()));
+    
 }
 void XMLModuleTab::writeModule(QGroupBox *group)
 {
+    printLog(QString("[%1] %2 : Write module").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"), group->title()));
+    
+}
+void XMLModuleTab::addNewModule()
+{
+    QString moduleName = QInputDialog::getText(this, tr("Add New Module"), tr("Module Name:"), QLineEdit::Normal, "");
+    if (moduleName.isEmpty()) {
+        return;
+    }
+    Module newModule{
+        .moduleName = moduleName
+    };
+    m_xmlConfig.modules.append(newModule);
+    m_xmlConfig.moduleOrder.append(moduleName);
+
+    printLog(QString("Add new module: %1").arg(moduleName));
+    printXMLConfig();
+    generateUI();
+}
+
+void XMLModuleTab::printLog(const QString &message)
+{
     if (ui->echo_text) {
-        ui->echo_text->appendPlainText(QString("[%1] %2 : Write module").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"), group->title()));
+        ui->echo_text->appendPlainText(QString("[%1] %2").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"), message));
     }
 }

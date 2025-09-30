@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     w.setFont(menuFont); // 设置主窗口标题字体
 
     //////////////////////设置软件初始主题为暗黑///////////////////////////////////////
-    QFile f(":/qdarkstyle/dark/darkstyle.qss");
+    QFile f(":/qdarkstyle/light/lightstyle.qss");
     if (!f.exists())   {
         qDebug()<<"Unable to set stylesheet, file not found";
         //printf("Unable to set stylesheet, file not found\n");

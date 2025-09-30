@@ -67,6 +67,31 @@
           </column>
          </widget>
         </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="add_module_btn">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>35</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Times New Roman</family>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Add New Module</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
       <widget class="QSplitter" name="splitter">
@@ -135,6 +160,12 @@
    </layout>
   </widget>
   <widget class="QToolBar" name="toolBar">
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
@@ -148,6 +179,8 @@
     <bool>false</bool>
    </attribute>
    <addaction name="connect_action"/>
+   <addaction name="separator"/>
+   <addaction name="edit_mode_action"/>
    <addaction name="refresh_action"/>
    <addaction name="separator"/>
    <addaction name="import_xml_action"/>
@@ -274,6 +307,39 @@
   <action name="separator">
    <property name="separator" stdset="0">
     <bool>true</bool>
+   </property>
+  </action>
+  <action name="edit_mode_action">
+   <property name="icon">
+    <iconset theme="document-properties"/>
+   </property>
+   <property name="text">
+    <string>Edit Mode</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="disconnect_action">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::EditClear"/>
+   </property>
+   <property name="text">
+    <string>Disconnect</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+    </font>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
  </widget>

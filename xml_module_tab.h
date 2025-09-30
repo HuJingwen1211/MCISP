@@ -4,12 +4,10 @@
 #include <QMainWindow>
 #include <QVBoxLayout>
 #include <QTreeWidgetItem>
-#include <QVector>
 #include <QString>
-#include <QStringList>
 #include <QByteArray>
 #include <QGroupBox>
-
+#include "xml_config.h"
 // enum class AddressType {
 //     Physical_Addr = 0,
 //     Virtual_Addr = 1
@@ -28,34 +26,18 @@ public:
 
 private slots:
     void connectToBoard();
-    // void refresh();
+    void disconnectFromBoard();
+    void setEditMode();
+    void refresh();
     void importXML();
-    // void exportXml();
+    void exportXml();
     void importConfig();
     void exportConfig();
     void allRead();
     void allWrite();
     void onModuleTreeDoubleClicked(QTreeWidgetItem *item, int column);
 
-
-private:
-// structs
-struct Param {
-    QString paramName;
-    int min = 0;
-    int max = 0;
-    int defaultVal = 0;
-    int address = 0;
-    // AddressType addrType = AddressType::Virtual_Addr;
-};
-struct Module {
-    QString moduleName;
-    QVector<Param> params;
-};
-struct XMLConfig {
-    QStringList moduleOrder;
-    QVector<Module> modules;
-};
+    void addNewModule();
 
 private:
     bool parseXML(const QByteArray &data);
@@ -67,12 +49,14 @@ private:
     void readModule(QGroupBox *group);
     void writeModule(QGroupBox *group);
 
+    void printLog(const QString &message);
+
 private:
     Ui::XMLModuleTab *ui;
 
     bool m_connected = false;
-    QVBoxLayout *m_moduleLayout;
     XMLConfig m_xmlConfig;
+    bool m_isEditMode = false;
 };
 
 #endif // XML_MODULE_TAB_H
