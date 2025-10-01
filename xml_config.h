@@ -9,15 +9,13 @@ struct Param {
     int min = 0;
     int max = 0;
     int defaultVal = 0;
-    int address = 0;
-    // AddressType addrType = AddressType::Virtual_Addr;
+    uint32_t address = 0;
 };
 struct Module {
     QString moduleName;
     QVector<Param> params{};
 };
 struct XMLConfig {
-    QStringList moduleOrder;
     QVector<Module> modules;
 };
 #endif // XML_CONFIG_H

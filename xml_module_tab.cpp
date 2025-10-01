@@ -111,7 +111,24 @@ void XMLModuleTab::importXML()
 }
 void XMLModuleTab::exportXml()
 {
-    // 导出XML
+    // 导出XML，路径自动加上.xml
+    QString path = QFileDialog::getSaveFileName(
+        this,
+        tr("Export XML"),
+        QDir::homePath() + "/.xml",
+        tr("XML Files (*.xml);;All Files (*.*)")
+    );
+    if (path.isEmpty()) return;
+
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::warning(this, tr("Warning"), tr("Failed to open XML: %1").arg(path));
+        return;
+    }
+    file.write(serializeXML());
+    file.close();
+    printLog(QString("Exported XML: %1").arg(path));
+    QMessageBox::information(this, tr("Success"), tr("XML exported successfully"));
 }
 void XMLModuleTab::importConfig()
 {
@@ -158,7 +175,7 @@ bool XMLModuleTab::parseXML(const QByteArray &data)
                     .min = attrs.value("min").toString().trimmed().toInt(),
                     .max = attrs.value("max").toString().trimmed().toInt(),
                     .defaultVal = attrs.value("default").toString().trimmed().toInt(),
-                    .address = attrs.value("address").toString().trimmed().toInt(nullptr, 0)
+                    .address = attrs.value("address").toString().trimmed().toUInt(nullptr, 0)
                 };
                 curModule.params.append(curParam);
             }
@@ -167,7 +184,6 @@ bool XMLModuleTab::parseXML(const QByteArray &data)
         else if (reader.isEndElement() && tag == "MODULE" && inModule) {
             if (!curModule.moduleName.isEmpty()) {
                 m_xmlConfig.modules.append(curModule);
-                m_xmlConfig.moduleOrder.append(curModule.moduleName);
             }
             inModule = false;
         }
@@ -175,6 +191,40 @@ bool XMLModuleTab::parseXML(const QByteArray &data)
     return !reader.hasError();
 }
 
+QByteArray XMLModuleTab::serializeXML() const
+{
+    QByteArray data;
+    QXmlStreamWriter writer(&data);
+    writer.setAutoFormatting(true);
+    writer.setAutoFormattingIndent(4);
+
+    writer.writeStartDocument();
+    writer.writeStartElement("REGISTER_CONFIG");
+
+    for (const Module& module : m_xmlConfig.modules) {
+        
+        if (module.moduleName.isEmpty()) continue;
+
+        writer.writeStartElement("MODULE");
+        writer.writeAttribute("id", module.moduleName);
+
+        for (const Param& param : module.params) {
+            writer.writeEmptyElement("PARAM");
+            writer.writeAttribute("id", param.paramName);
+            writer.writeAttribute("min", QString::number(param.min));
+            writer.writeAttribute("max", QString::number(param.max));
+            writer.writeAttribute("default", QString::number(param.defaultVal));
+            writer.writeAttribute("address", QString::asprintf("0x%08X", param.address));
+        }
+
+        writer.writeEndElement(); // MODULE
+    }
+
+    writer.writeEndElement(); // REGISTER_CONFIG
+    writer.writeEndDocument();
+
+    return data;
+}
 void XMLModuleTab::onModuleTreeDoubleClicked(QTreeWidgetItem *item, int column)
 {
     Q_UNUSED(column);
@@ -211,7 +261,6 @@ void XMLModuleTab::printXMLConfig()
     // 打印解析结果
     printLog(QString("=== 解析结果 ==="));
     printLog(QString("模块总数: %1").arg(m_xmlConfig.modules.size()));
-    printLog(QString("模块顺序: %1").arg(m_xmlConfig.moduleOrder.join(", ")));
     printLog("");
     
     // 详细打印每个模块
@@ -294,7 +343,6 @@ void XMLModuleTab::generateModuleTree()
             connect(deleteBtn, &QToolButton::clicked, this, [this, i]() {
                 if (QMessageBox::question(this, "Delete Module", "Are you sure you want to delete this module?", QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
                     m_xmlConfig.modules.removeAt(i);
-                    m_xmlConfig.moduleOrder.removeAt(i);
                     generateUI();
                 }
             });
@@ -389,10 +437,9 @@ void XMLModuleTab::addNewModule()
         .moduleName = moduleName
     };
     m_xmlConfig.modules.append(newModule);
-    m_xmlConfig.moduleOrder.append(moduleName);
 
     printLog(QString("Add new module: %1").arg(moduleName));
-    printXMLConfig();
+    // printXMLConfig();
     generateUI();
 }
 

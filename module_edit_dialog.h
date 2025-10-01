@@ -18,16 +18,19 @@ public:
     //static
     static Module editModule(const Module &module, QWidget *parent = nullptr);
 
+
 private slots:
     void addParam();
-    void saveModule();
+    bool saveModule();
 
 private:
     void setupDialog();
     void updateParamTable();
+    bool validateRow(int row) const;
 private:
     Module m_module;
     QTableWidget* m_paramTable;
+    bool m_isEditing = false;
 
 
 };

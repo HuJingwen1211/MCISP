@@ -41,6 +41,7 @@ private slots:
 
 private:
     bool parseXML(const QByteArray &data);
+    QByteArray serializeXML() const;
     void printXMLConfig();
     void clearUI();
     void generateUI();

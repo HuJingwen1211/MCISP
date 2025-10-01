@@ -33,16 +33,33 @@ Module ModuleEditDialog::editModule(const Module &module, QWidget *parent)
 
 void ModuleEditDialog::addParam()
 {
+    Param newParam{
+        .paramName = "",
+        .min = 0,
+        .max = 0,
+        .defaultVal = 0,
+        .address = 0
+    };
+    m_module.params.append(newParam);
+    updateParamTable();
 
+    int newRow = m_module.params.size() - 1;
+    m_paramTable->selectRow(newRow);
 }
 
 
 
-void ModuleEditDialog::saveModule()
+bool ModuleEditDialog::saveModule()
 {
     for (int row = 0; row < m_paramTable->rowCount(); ++row) {
+        // 先校验这一行
+        if (!validateRow(row)) {
+            QMessageBox::warning(this, "Save Failed", 
+                QString("Row %1 has invalid data").arg(row + 1));
+            m_paramTable->setCurrentCell(row, 0);  // 定位到错误行
+            return false;  // 校验失败就停止保存
+        }
         Param p;
-        
         // 收集数据
         if (QTableWidgetItem* nameItem = m_paramTable->item(row, 0)) {
             p.paramName = nameItem->text().trimmed();
@@ -61,19 +78,16 @@ void ModuleEditDialog::saveModule()
         }
         if (QTableWidgetItem* addrItem = m_paramTable->item(row, 4)) {
             bool ok = false;
-            p.address = addrItem->text().toInt(&ok, 0);
+            p.address = addrItem->text().toUInt(&ok, 0);
             if (!ok) p.address = 0;
         }
-        
-        // 校验
-        if (p.min > p.max) qSwap(p.min, p.max);
-        if (p.defaultVal < p.min) p.defaultVal = p.min;
-        if (p.defaultVal > p.max) p.defaultVal = p.max;
         
         // 写回
         m_module.params[row] = p;
     }
+    return true;
 }
+
 
 
 
@@ -136,12 +150,19 @@ void ModuleEditDialog::setupDialog()
     //connect
     connect(addBtn, &QPushButton::clicked, this, &ModuleEditDialog::addParam);
     connect(cancelBtn, &QPushButton::clicked, this, &QDialog::reject);
-    connect(okBtn, &QPushButton::clicked, this, &QDialog::accept);
+    // connect(okBtn, &QPushButton::clicked, this, &QDialog::accept);
+
+    connect(okBtn, &QPushButton::clicked, this, [this]() {
+        m_paramTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        m_paramTable->setFocus();
+        if (!saveModule()) return;
+        
+        QDialog::accept();
+    });
 
     connect(editBtn, &QPushButton::clicked, this, [this, editBtn]() {
         // 进入编辑状态
-        static bool isEditing = false;
-        if (!isEditing) {
+        if (!m_isEditing) {
             m_paramTable->setEditTriggers(QAbstractItemView::AllEditTriggers);
             // 按钮变绿
             editBtn->setText("Save");
@@ -153,10 +174,10 @@ void ModuleEditDialog::setupDialog()
 					w->setStyleSheet("");
 				}
             }
-            isEditing = true;
+            m_isEditing = true;
         } else {
             // 保存并退出编辑状态
-            saveModule();
+            if (!saveModule()) return;
             m_paramTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
             editBtn->setText("Edit");
             editBtn->setStyleSheet("");
@@ -167,7 +188,7 @@ void ModuleEditDialog::setupDialog()
 					w->setStyleSheet("background-color:#d93026;");
 				}
 			}
-            isEditing = false;
+            m_isEditing = false;
         }
     });
 
@@ -184,7 +205,7 @@ void ModuleEditDialog::updateParamTable()
         m_paramTable->setItem(i, 1, new QTableWidgetItem(QString::number(param.defaultVal)));
         m_paramTable->setItem(i, 2, new QTableWidgetItem(QString::number(param.min)));
         m_paramTable->setItem(i, 3, new QTableWidgetItem(QString::number(param.max)));
-        m_paramTable->setItem(i, 4, new QTableWidgetItem(QString("0x%1").arg(param.address, 0, 16)));
+        m_paramTable->setItem(i, 4, new QTableWidgetItem(QString::asprintf("0x%08X", param.address)));
 
         // 删除按钮
         if (!m_paramTable->cellWidget(i, 5)) {
@@ -206,4 +227,34 @@ void ModuleEditDialog::updateParamTable()
 	m_paramTable->resizeColumnsToContents();
 	m_paramTable->resizeRowsToContents();
 	this->adjustSize();
+}
+
+bool ModuleEditDialog::validateRow(int row) const
+{
+    // 从表格读取当前值，不是从 m_module
+    auto getText = [this](int r, int c) -> QString {
+        if (auto* item = m_paramTable->item(r, c)) return item->text().trimmed();
+        return {};
+    };
+    
+    QString name = getText(row, 0);
+    QString defStr = getText(row, 1);
+    QString minStr = getText(row, 2);
+    QString maxStr = getText(row, 3);
+    QString addrStr = getText(row, 4);
+    
+    // 基本校验
+    if (name.isEmpty()) return false;
+    
+    bool okDef, okMin, okMax, okAddr;
+    int def = defStr.toInt(&okDef);
+    int min = minStr.toInt(&okMin);
+    int max = maxStr.toInt(&okMax);
+    int addr = addrStr.toUInt(&okAddr, 0);  // 支持 0x 格式
+    
+    if (!okDef || !okMin || !okMax || !okAddr) return false;
+    if (min > max) return false;
+    if (def < min || def > max) return false;
+    
+    return true;
 }
