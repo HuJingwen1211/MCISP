@@ -156,7 +156,6 @@ void ModuleEditDialog::setupDialog()
         m_paramTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
         m_paramTable->setFocus();
         if (!saveModule()) return;
-        
         QDialog::accept();
     });
 

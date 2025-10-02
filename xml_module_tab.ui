@@ -179,16 +179,12 @@
     <bool>false</bool>
    </attribute>
    <addaction name="connect_action"/>
-   <addaction name="separator"/>
-   <addaction name="edit_mode_action"/>
-   <addaction name="refresh_action"/>
-   <addaction name="separator"/>
    <addaction name="import_xml_action"/>
    <addaction name="export_xml_action"/>
-   <addaction name="separator"/>
+   <addaction name="edit_mode_action"/>
+   <addaction name="refresh_action"/>
    <addaction name="import_config_action"/>
    <addaction name="export_config_action"/>
-   <addaction name="separator"/>
    <addaction name="all_read_action"/>
    <addaction name="all_write_action"/>
   </widget>
@@ -302,11 +298,6 @@
      <family>Times New Roman</family>
      <pointsize>8</pointsize>
     </font>
-   </property>
-  </action>
-  <action name="separator">
-   <property name="separator" stdset="0">
-    <bool>true</bool>
    </property>
   </action>
   <action name="edit_mode_action">

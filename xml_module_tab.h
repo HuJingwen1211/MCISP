@@ -7,6 +7,8 @@
 #include <QString>
 #include <QByteArray>
 #include <QGroupBox>
+#include <QLabel>
+#include <QSpinBox>
 #include "xml_config.h"
 // enum class AddressType {
 //     Physical_Addr = 0,
@@ -28,7 +30,7 @@ private slots:
     void connectToBoard();
     void disconnectFromBoard();
     void setEditMode();
-    void refresh();
+    void refreshToDefault();
     void importXML();
     void exportXml();
     void importConfig();
@@ -49,7 +51,10 @@ private:
     void generateModuleGroup(const Module &module);
     void readModule(QGroupBox *group);
     void writeModule(QGroupBox *group);
-
+    bool applyConfigToUI(const QByteArray &data);
+    QByteArray collectConfigFromUI();
+    QLabel* findLabelForSpinBox(QGroupBox* group, QSpinBox* spinBox);
+    bool parseConfigFile(const QByteArray &data);
     void printLog(const QString &message);
 
 private:

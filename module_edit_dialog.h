@@ -18,7 +18,6 @@ public:
     //static
     static Module editModule(const Module &module, QWidget *parent = nullptr);
 
-
 private slots:
     void addParam();
     bool saveModule();

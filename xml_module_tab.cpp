@@ -27,7 +27,7 @@ XMLModuleTab::XMLModuleTab(QWidget *parent)
     connect(ui->connect_action,       &QAction::triggered, this, &XMLModuleTab::connectToBoard);
     // connect(ui->connect_action,    &QAction::triggered, this, &XMLModuleTab::disconnectFromBoard);
     connect(ui->edit_mode_action,     &QAction::triggered, this, &XMLModuleTab::setEditMode);
-    connect(ui->refresh_action,       &QAction::triggered, this, &XMLModuleTab::refresh);
+    connect(ui->refresh_action,       &QAction::triggered, this, &XMLModuleTab::refreshToDefault);
     connect(ui->import_xml_action,    &QAction::triggered, this, &XMLModuleTab::importXML);
     connect(ui->export_xml_action,    &QAction::triggered, this, &XMLModuleTab::exportXml);
     connect(ui->import_config_action, &QAction::triggered, this, &XMLModuleTab::importConfig);
@@ -75,13 +75,14 @@ void XMLModuleTab::setEditMode()
     generateUI();
 }
 
-void XMLModuleTab::refresh()
+void XMLModuleTab::refreshToDefault()
 {
-    // 刷新
+    if (QMessageBox::question(this, tr("Refresh"), 
+                              tr("All parameters will be reset to default values. Continue?")) == QMessageBox::Yes) {
+        generateUI();
+        printLog(QString("Refresh to default values"));
+    }
 }
-
-
-
 void XMLModuleTab::importXML()
 {
     QString path = QFileDialog::getOpenFileName(
@@ -103,6 +104,7 @@ void XMLModuleTab::importXML()
     file.close();
     if (parseXML(data)) {
         generateUI();
+        QMessageBox::information(this, tr("Success"), tr("XML imported successfully"));
         printLog(QString("Imported XML: %1").arg(path));
     } else {
         QMessageBox::warning(this, tr("Warning"), tr("Failed to parse XML: %1").arg(path));
@@ -115,7 +117,7 @@ void XMLModuleTab::exportXml()
     QString path = QFileDialog::getSaveFileName(
         this,
         tr("Export XML"),
-        QDir::homePath() + "/.xml",
+        QDir::homePath(),
         tr("XML Files (*.xml);;All Files (*.*)")
     );
     if (path.isEmpty()) return;
@@ -133,11 +135,49 @@ void XMLModuleTab::exportXml()
 void XMLModuleTab::importConfig()
 {
     // 导入配置
+    QString path = QFileDialog::getOpenFileName(
+        this,
+        tr("Import Config"),
+        QDir::homePath(),
+        tr("Config Files (*.cfg);;All Files (*.*)")
+    );
+    if (path.isEmpty()) return;
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, tr("Warning"), tr("Failed to open Config: %1").arg(path));
+        return;
+    }
+    QByteArray data = file.readAll();
+    file.close();
+    if (parseConfigFile(data)) {
+        QMessageBox::information(this, tr("Success"), tr("Config imported successfully"));
+        printLog(QString("Imported Config: %1").arg(path));
+    } else {
+        QMessageBox::warning(this, tr("Warning"), tr("Failed to parse Config: %1").arg(path));
+        printLog(QString("Failed to parse Config: %1").arg(path));
+    }
 }
 
 void XMLModuleTab::exportConfig()
 {
     // 导出配置
+    QString path = QFileDialog::getSaveFileName(
+        this,
+        tr("Export Config"),
+        QDir::homePath(),
+        tr("Config Files (*.cfg);;All Files (*.*)")
+    );
+    if (path.isEmpty()) return;
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::warning(this, tr("Warning"), tr("Failed to open Config: %1").arg(path));
+        return;
+    }
+    QByteArray data = collectConfigFromUI();
+    file.write(data);
+    file.close();
+    printLog(QString("Exported Config: %1").arg(path));
+    QMessageBox::information(this, tr("Success"), tr("Config exported successfully"));
 }
 
 void XMLModuleTab::allRead()
@@ -419,12 +459,12 @@ void XMLModuleTab::clearUI()
 void XMLModuleTab::readModule(QGroupBox *group)
 {
     
-    printLog(QString("[%1] %2 : Read module").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"), group->title()));
+    printLog(QString("%1: Read module").arg(group->title()));
     
 }
 void XMLModuleTab::writeModule(QGroupBox *group)
 {
-    printLog(QString("[%1] %2 : Write module").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"), group->title()));
+    printLog(QString("%1: Write module").arg(group->title()));
     
 }
 void XMLModuleTab::addNewModule()
@@ -448,4 +488,118 @@ void XMLModuleTab::printLog(const QString &message)
     if (ui->echo_text) {
         ui->echo_text->appendPlainText(QString("[%1] %2").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"), message));
     }
+}
+
+QByteArray XMLModuleTab::collectConfigFromUI()
+{
+    QByteArray data;
+    QTextStream stream(&data);
+    
+    QWidget* container = ui->scrollAreaWidgetContents;
+    const auto groups = container->findChildren<QGroupBox*>();
+    
+    for (QGroupBox* group : groups) {
+        QString moduleName = group->title();
+        stream << "[" << moduleName << "]" << Qt::endl;
+        
+        const auto spinBoxes = group->findChildren<QSpinBox*>();
+        for (QSpinBox* spinBox : spinBoxes) {
+            QLabel* label = findLabelForSpinBox(group, spinBox);
+            if (!label) continue;
+            
+            QString paramName = label->text().chopped(1);
+            stream << paramName << "=" << spinBox->value() << Qt::endl;
+        }
+        stream << Qt::endl;
+    }
+    
+    return data;
+}
+// xml_module_tab.cpp 第520行后添加：
+QLabel* XMLModuleTab::findLabelForSpinBox(QGroupBox* group, QSpinBox* spinBox)
+{
+    QGridLayout* layout = qobject_cast<QGridLayout*>(group->layout()->itemAt(1)->layout());
+    if (!layout) return nullptr;
+    
+    int row, col, rowSpan, colSpan;
+    layout->getItemPosition(layout->indexOf(spinBox), &row, &col, &rowSpan, &colSpan);
+    
+    QLayoutItem* item = layout->itemAtPosition(row, 0);
+    return item ? qobject_cast<QLabel*>(item->widget()) : nullptr;
+}
+bool XMLModuleTab::parseConfigFile(const QByteArray &data)
+{
+    QTextStream stream(data);
+    QString currentModule;
+    QStringList missingModules;
+    QStringList missingParams;
+    
+    while (!stream.atEnd()) {
+        QString line = stream.readLine().trimmed();
+        if (line.isEmpty()) continue;
+        
+        if (line.startsWith("[") && line.endsWith("]")) {
+            currentModule = line.mid(1, line.length() - 2);
+        } else if (line.contains("=")) {
+            QStringList parts = line.split("=");
+            if (parts.size() == 2 && !currentModule.isEmpty()) {
+                QString paramName = parts[0].trimmed();
+                int value = parts[1].trimmed().toInt();
+                
+                // 查找对应的SpinBox
+                bool found = false;
+                QWidget* container = ui->scrollAreaWidgetContents;
+                const auto groups = container->findChildren<QGroupBox*>();
+                
+                // 先检查模块是否存在
+                bool moduleExists = false;
+                for (QGroupBox* group : groups) {
+                    if (group->title() == currentModule) {
+                        moduleExists = true;
+                        break;
+                    }
+                }
+                
+                if (!moduleExists) {
+                    if (!missingModules.contains(currentModule)) {
+                        missingModules.append(currentModule);
+                    }
+                    continue;
+                }
+                
+                // 查找参数
+                for (QGroupBox* group : groups) {
+                    if (group->title() == currentModule) {
+                        const auto spinBoxes = group->findChildren<QSpinBox*>();
+                        for (QSpinBox* spinBox : spinBoxes) {
+                            QLabel* label = findLabelForSpinBox(group, spinBox);
+                            if (label && label->text().chopped(1) == paramName) {
+                                spinBox->setValue(value);
+                                found = true;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+                
+                if (!found) {
+                    missingParams.append(QString("[%1] %2").arg(currentModule).arg(paramName));
+                }
+            }
+        }
+    }
+    
+    
+    // 输出缺失的模块
+    if (!missingModules.isEmpty()) {
+        printLog(QString("Missing modules: %1").arg(missingModules.join(", ")));
+    }
+    
+    // 输出缺失的参数
+    if (!missingParams.isEmpty()) {
+        printLog(QString("Missing parameters: %1").arg(missingParams.join(", ")));
+    }
+    
+    return missingModules.isEmpty() && missingParams.isEmpty();
 }
