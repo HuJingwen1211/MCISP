@@ -1,6 +1,7 @@
 #include "xml_module_tab.h"
 #include "ui_xml_module_tab.h"
 #include "module_edit_dialog.h"
+#include "Comm/connect_dialog.h"
 #include <QGroupBox>
 #include <QPushButton>
 #include <QLabel>
@@ -24,8 +25,7 @@ XMLModuleTab::XMLModuleTab(QWidget *parent)
     ui->setupUi(this);
     ui->add_module_btn->setVisible(false);
 
-    connect(ui->connect_action,       &QAction::triggered, this, &XMLModuleTab::connectToBoard);
-    // connect(ui->connect_action,    &QAction::triggered, this, &XMLModuleTab::disconnectFromBoard);
+    connect(ui->connect_action,       &QAction::triggered, this, &XMLModuleTab::showConnectDialog);
     connect(ui->edit_mode_action,     &QAction::triggered, this, &XMLModuleTab::setEditMode);
     connect(ui->refresh_action,       &QAction::triggered, this, &XMLModuleTab::refreshToDefault);
     connect(ui->import_xml_action,    &QAction::triggered, this, &XMLModuleTab::importXML);
@@ -53,16 +53,13 @@ XMLModuleTab::~XMLModuleTab()
 
 
 
-void XMLModuleTab::connectToBoard()
+void XMLModuleTab::showConnectDialog()
 {
     // 连接到板子
     // 弹出连接对话框
     // 复用link_board的连接对话框，可以选择串口或网络连接
-}
-
-void XMLModuleTab::disconnectFromBoard()
-{
-    // 断开连接
+    ConnectDialog connectDialog(this);
+    connectDialog.exec();
 }
 
 void XMLModuleTab::setEditMode()

@@ -165,7 +165,7 @@ void ModuleEditDialog::setupDialog()
             m_paramTable->setEditTriggers(QAbstractItemView::AllEditTriggers);
             // 按钮变绿
             editBtn->setText("Save");
-            editBtn->setStyleSheet("background-color:green;");
+            editBtn->setStyleSheet("background-color:green; color: white;");
             // 禁用delete按钮
             for (int r = 0; r < m_paramTable->rowCount(); r++) {
                 if (auto *w = m_paramTable->cellWidget(r, 5)) {
@@ -184,7 +184,7 @@ void ModuleEditDialog::setupDialog()
 			for (int r = 0; r < m_paramTable->rowCount(); r++) {
 				if (auto *w = m_paramTable->cellWidget(r, 5)) {
 					w->setEnabled(true);
-					w->setStyleSheet("background-color:#d93026;");
+					w->setStyleSheet("background-color:#d93026");
 				}
 			}
             m_isEditing = false;
@@ -209,7 +209,7 @@ void ModuleEditDialog::updateParamTable()
         // 删除按钮
         if (!m_paramTable->cellWidget(i, 5)) {
             QToolButton* delBtn = new QToolButton(m_paramTable);
-            delBtn->setStyleSheet("background-color:#d93026;");
+            delBtn->setStyleSheet("background-color:#d93026");
             delBtn->setIcon(QIcon::fromTheme("edit-delete"));
             delBtn->setAutoRaise(true);
             delBtn->setProperty("row", i);

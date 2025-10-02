@@ -27,8 +27,7 @@ public:
     ~XMLModuleTab();
 
 private slots:
-    void connectToBoard();
-    void disconnectFromBoard();
+    void showConnectDialog();
     void setEditMode();
     void refreshToDefault();
     void importXML();
