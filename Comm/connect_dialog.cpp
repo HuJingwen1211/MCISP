@@ -1,6 +1,7 @@
 #include "connect_dialog.h"
 #include "ui_connect_dialog.h"
 #include <QSerialPortInfo>
+#include <QDebug>
 
 ConnectDialog::ConnectDialog(QWidget *parent)
     : QDialog(parent)
@@ -34,4 +35,3 @@ ConnectDialog::~ConnectDialog()
 {
     delete ui;
 }
-

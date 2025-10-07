@@ -32,7 +32,7 @@ CONFIG(release, debug|release) {
 
 
 SOURCES += \
-    Comm/comm.cpp \
+    Comm/comm_manager.cpp \
     Comm/connect_dialog.cpp \
     Link_tab/awb_tab.cpp \
     Link_tab/blc_tab.cpp \
@@ -79,7 +79,7 @@ SOURCES += \
     Link_tab/dpc_tab.cpp
 
 HEADERS += \
-    Comm/comm.h \
+    Comm/comm_manager.h \
     Comm/connect_dialog.h \
     Link_tab/awb_tab.h \
     Link_tab/blc_tab.h \
