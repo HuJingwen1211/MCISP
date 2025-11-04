@@ -33,7 +33,6 @@ CONFIG(release, debug|release) {
 
 SOURCES += \
     Comm/comm_manager.cpp \
-    Comm/connect_dialog.cpp \
     Link_tab/awb_tab.cpp \
     Link_tab/blc_tab.cpp \
     Link_tab/capture_tab.cpp \
@@ -80,7 +79,6 @@ SOURCES += \
 
 HEADERS += \
     Comm/comm_manager.h \
-    Comm/connect_dialog.h \
     Link_tab/awb_tab.h \
     Link_tab/blc_tab.h \
     Link_tab/capture_tab.h \
@@ -126,7 +124,6 @@ HEADERS += \
     Link_tab/dpc_tab.h
 
 FORMS += \
-    Comm/connect_dialog.ui \
     Link_tab/awb_tab.ui \
     Link_tab/blc_tab.ui \
     Link_tab/capture_tab.ui \

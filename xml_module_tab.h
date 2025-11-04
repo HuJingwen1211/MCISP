@@ -9,7 +9,9 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QSpinBox>
+#include <QSerialPortInfo>
 #include "xml_config.h"
+#include "Comm/comm_manager.h"
 // enum class AddressType {
 //     Physical_Addr = 0,
 //     Virtual_Addr = 1
@@ -27,7 +29,6 @@ public:
     ~XMLModuleTab();
 
 private slots:
-    void showConnectDialog();
     void setEditMode();
     void refreshToDefault();
     void importXML();
@@ -37,28 +38,50 @@ private slots:
     void allRead();
     void allWrite();
     void onModuleTreeDoubleClicked(QTreeWidgetItem *item, int column);
-
+    void onLinkBtnClicked();
     void addNewModule();
+    
+    // 网络连接成功/失败回调
+    void onNetworkConnected();
+    void onNetworkDisconnected();
 
 private:
+    // UI 初始化
+    void initializeUI();
+    
+    // XML 操作
     bool parseXML(const QByteArray &data);
     QByteArray serializeXML() const;
     void printXMLConfig();
+    
+    // UI 生成与管理
     void clearUI();
     void generateUI();
     void generateModuleTree();
     void generateModuleGroup(const Module &module);
+    
+    // 模块读写
     void readModule(QGroupBox *group);
     void writeModule(QGroupBox *group);
+    
+    // 配置文件操作
     bool applyConfigToUI(const QByteArray &data);
     QByteArray collectConfigFromUI();
     QLabel* findLabelForSpinBox(QGroupBox* group, QSpinBox* spinBox);
     bool parseConfigFile(const QByteArray &data);
+    
+    // 日志
     void printLog(const QString &message);
+    
+    // 连接处理
+    void handleSerialConnect();
+    void handleNetworkConnect();
+    void handleDisconnect();
 
 private:
     Ui::XMLModuleTab *ui;
 
+    CommManager *m_commMgr = nullptr;
     bool m_connected = false;
     XMLConfig m_xmlConfig;
     bool m_isEditMode = false;

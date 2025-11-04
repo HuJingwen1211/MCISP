@@ -1,7 +1,6 @@
 #include "xml_module_tab.h"
 #include "ui_xml_module_tab.h"
 #include "module_edit_dialog.h"
-#include "Comm/connect_dialog.h"
 #include <QGroupBox>
 #include <QPushButton>
 #include <QLabel>
@@ -20,12 +19,13 @@
 XMLModuleTab::XMLModuleTab(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::XMLModuleTab)
+    , m_commMgr(new CommManager(this))  // 初始化 CommManager
     , m_connected(false)
 {
     ui->setupUi(this);
-    ui->add_module_btn->setVisible(false);
-
-    connect(ui->connect_action,       &QAction::triggered, this, &XMLModuleTab::showConnectDialog);
+    initializeUI();
+    
+    // 连接工具栏动作
     connect(ui->edit_mode_action,     &QAction::triggered, this, &XMLModuleTab::setEditMode);
     connect(ui->refresh_action,       &QAction::triggered, this, &XMLModuleTab::refreshToDefault);
     connect(ui->import_xml_action,    &QAction::triggered, this, &XMLModuleTab::importXML);
@@ -35,15 +35,28 @@ XMLModuleTab::XMLModuleTab(QWidget *parent)
     connect(ui->all_read_action,      &QAction::triggered, this, &XMLModuleTab::allRead);
     connect(ui->all_write_action,     &QAction::triggered, this, &XMLModuleTab::allWrite);
 
-
+    // 连接模块树和按钮
     connect(ui->module_list,          &QTreeWidget::itemDoubleClicked, this, &XMLModuleTab::onModuleTreeDoubleClicked);
-
     connect(ui->add_module_btn,       &QToolButton::clicked, this, &XMLModuleTab::addNewModule);
 
-
-    // 关键：给scrollAreaWidgetContents设置布局
-    ui->scrollAreaWidgetContents->setLayout(new QVBoxLayout());
+    // 连接 Connect 区的控件
+    connect(ui->link_btn, &QPushButton::clicked, this, &XMLModuleTab::onLinkBtnClicked);
+    connect(ui->clear_btn, &QPushButton::clicked, [this]() {
+        ui->echo_text->clear();
+    });
+    connect(ui->serial_radio, &QRadioButton::toggled, [this](bool checked) {
+        if (checked) ui->config_stack->setCurrentIndex(0);
+    });
+    connect(ui->network_radio, &QRadioButton::toggled, [this](bool checked) {
+        if (checked) ui->config_stack->setCurrentIndex(1);
+    });
     
+    // 连接 CommManager 日志信号
+    connect(m_commMgr, &CommManager::logMessage, this, &XMLModuleTab::printLog);
+    
+    // 连接 CommManager 网络专用信号（只用于异步网络连接）
+    connect(m_commMgr, &CommManager::networkConnected, this, &XMLModuleTab::onNetworkConnected);
+    connect(m_commMgr, &CommManager::networkDisconnected, this, &XMLModuleTab::onNetworkDisconnected);
 }
 
 XMLModuleTab::~XMLModuleTab()
@@ -51,25 +64,45 @@ XMLModuleTab::~XMLModuleTab()
     delete ui;
 }
 
+// ============================================================================
+// UI 初始化
+// ============================================================================
 
-
-void XMLModuleTab::showConnectDialog()
+void XMLModuleTab::initializeUI()
 {
-    // 连接到板子
-    // 弹出连接对话框
-    // 复用link_board的连接对话框，可以选择串口或网络连接
-    ConnectDialog connectDialog(this);
-    connectDialog.exec();
+    // 隐藏编辑模式按钮
+    ui->add_module_btn->setVisible(false);
+    
+    // 设置左右分隔条初始比例（左侧面板 200px，右侧内容区 800px）
+    ui->splitter_2->setSizes({200, 800});
+    
+    // 设置左侧上下分隔条初始比例（OPTION 区 400px，CONNECT 区 180px）
+    ui->left_splitter->setSizes({400, 180});
+
+    // 填充串口列表
+    foreach(const QSerialPortInfo &info, QSerialPortInfo::availablePorts()) {
+        ui->port_combx->addItem(info.portName());
+    }
+    
+    // 设置默认值
+    ui->serial_radio->setChecked(true);
+    ui->config_stack->setCurrentIndex(0);
 }
+
+// ============================================================================
+// 工具栏动作处理
+// ============================================================================
 
 void XMLModuleTab::setEditMode()
 {
-    // 设置编辑模式
     m_isEditMode = !m_isEditMode;
-
     ui->edit_mode_action->setText(m_isEditMode ? tr("Exit Edit") : tr("Edit Mode"));
     ui->add_module_btn->setVisible(m_isEditMode);
+
+    ui->connect_groupBox->setVisible(!m_isEditMode);
     generateUI();
+
+    
 }
 
 void XMLModuleTab::refreshToDefault()
@@ -187,6 +220,9 @@ void XMLModuleTab::allWrite()
     // 全部写入
 }
 
+// ============================================================================
+// XML 解析与序列化
+// ============================================================================
 
 bool XMLModuleTab::parseXML(const QByteArray &data)
 {
@@ -262,6 +298,11 @@ QByteArray XMLModuleTab::serializeXML() const
 
     return data;
 }
+
+// ============================================================================
+// UI 生成与管理
+// ============================================================================
+
 void XMLModuleTab::onModuleTreeDoubleClicked(QTreeWidgetItem *item, int column)
 {
     Q_UNUSED(column);
@@ -453,6 +494,10 @@ void XMLModuleTab::clearUI()
     }
 }
 
+// ============================================================================
+// 模块读写操作
+// ============================================================================
+
 void XMLModuleTab::readModule(QGroupBox *group)
 {
     
@@ -479,6 +524,10 @@ void XMLModuleTab::addNewModule()
     // printXMLConfig();
     generateUI();
 }
+
+// ============================================================================
+// 配置文件操作
+// ============================================================================
 
 void XMLModuleTab::printLog(const QString &message)
 {
@@ -512,7 +561,7 @@ QByteArray XMLModuleTab::collectConfigFromUI()
     
     return data;
 }
-// xml_module_tab.cpp 第520行后添加：
+
 QLabel* XMLModuleTab::findLabelForSpinBox(QGroupBox* group, QSpinBox* spinBox)
 {
     QGridLayout* layout = qobject_cast<QGridLayout*>(group->layout()->itemAt(1)->layout());
@@ -599,4 +648,108 @@ bool XMLModuleTab::parseConfigFile(const QByteArray &data)
     }
     
     return missingModules.isEmpty() && missingParams.isEmpty();
+}
+
+// ============================================================================
+// 通信连接操作
+// ============================================================================
+void XMLModuleTab::onLinkBtnClicked()
+{
+    if (ui->link_btn->text() == "Connect") {
+        if (ui->serial_radio->isChecked()) {
+            handleSerialConnect();
+        } else {
+            handleNetworkConnect();
+        }
+    } else if (ui->link_btn->text() == "Disconnect") {
+        handleDisconnect();
+    }
+}
+
+void XMLModuleTab::handleSerialConnect()
+{
+    const QString port = ui->port_combx->currentText();
+    const int baud = ui->baud_combx->currentText().toInt();
+    
+    if (port.isEmpty() || port == "<None>") {
+        QMessageBox::warning(this, "警告", "请选择串口");
+        return;
+    }
+    
+    if (m_commMgr->openSerial(port, baud)) {
+        m_commMgr->writeRaw(QByteArray("HELLO_FROM_APP\r\n"));
+        
+        m_connected = true;
+        printLog("串口连接成功");
+        ui->link_btn->setText("Disconnect");
+        ui->link_btn->setStyleSheet("background-color: #38815c;");
+        ui->port_combx->setEnabled(false);
+        ui->baud_combx->setEnabled(false);
+        ui->serial_radio->setEnabled(false);
+        ui->network_radio->setEnabled(false);
+    } else {
+        QMessageBox::critical(this, "错误", "串口打开失败");
+    }
+}
+
+void XMLModuleTab::handleNetworkConnect()
+{
+    const QString ip = ui->ip_lineEdit->text();
+    const int port = ui->tcp_port_spinBox->value();
+    
+    if (ip.isEmpty()) {
+        QMessageBox::warning(this, "警告", "请输入 IP 地址");
+        return;
+    }
+    
+    m_commMgr->openNetwork(ip, port);
+    printLog(QString("正在连接 %1:%2...").arg(ip).arg(port));
+}
+
+void XMLModuleTab::handleDisconnect()
+{
+    if (ui->serial_radio->isChecked()) {
+        // 串口：同步断开，直接处理
+        m_commMgr->close();
+        
+        m_connected = false;
+        printLog("串口断开");
+        ui->link_btn->setText("Connect");
+        ui->link_btn->setStyleSheet("");
+        ui->port_combx->setEnabled(true);
+        ui->baud_combx->setEnabled(true);
+        ui->serial_radio->setEnabled(true);
+        ui->network_radio->setEnabled(true);
+    } else {
+        // 网络：异步断开，依赖 networkDisconnected 信号
+        m_commMgr->close();
+    }
+}
+
+void XMLModuleTab::onNetworkConnected()
+{
+    // 网络异步连接成功
+    m_connected = true;
+    printLog("网络连接成功");
+    
+    ui->link_btn->setText("Disconnect");
+    ui->link_btn->setStyleSheet("background-color: #38815c;");
+    ui->ip_lineEdit->setEnabled(false);
+    ui->tcp_port_spinBox->setEnabled(false);
+    ui->serial_radio->setEnabled(false);
+    ui->network_radio->setEnabled(false);
+}
+
+void XMLModuleTab::onNetworkDisconnected()
+{
+    // 网络意外断开（或主动断开）
+    m_connected = false;
+    printLog("网络连接断开");
+    
+    ui->link_btn->setText("Connect");
+    ui->link_btn->setStyleSheet("");
+    ui->ip_lineEdit->setEnabled(true);
+    ui->tcp_port_spinBox->setEnabled(true);
+    ui->serial_radio->setEnabled(true);
+    ui->network_radio->setEnabled(true);
 }
