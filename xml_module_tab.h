@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QSerialPortInfo>
+#include <QHash>
 #include "xml_config.h"
 #include "Comm/comm_manager.h"
 // enum class AddressType {
@@ -44,6 +45,9 @@ private slots:
     // 网络连接成功/失败回调
     void onNetworkConnected();
     void onNetworkDisconnected();
+
+    // 模块读回包处理
+    void onModuleReadReply(quint8 moduleId, const QByteArray &payload);
 
 private:
     // UI 初始化
@@ -85,6 +89,10 @@ private:
     bool m_connected = false;
     XMLConfig m_xmlConfig;
     bool m_isEditMode = false;
+
+    QHash<QString, const Module*> m_moduleNameMap;   // 模块名 → Module*
+    QHash<quint8, const Module*> m_moduleIdMap;      // 模块号 → Module*
+    QHash<quint8, QGroupBox*> m_groupById;           // 模块号 → GroupBox
 };
 
 #endif // XML_MODULE_TAB_H

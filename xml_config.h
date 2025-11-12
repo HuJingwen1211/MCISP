@@ -13,6 +13,7 @@ struct Param {
 };
 struct Module {
     QString moduleName;
+    quint8 moduleId = 0xFF;
     QVector<Param> params{};
 };
 struct XMLConfig {

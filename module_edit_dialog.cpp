@@ -99,7 +99,11 @@ void ModuleEditDialog::setupDialog()
     // 标题：EDIT: module name
     // 
 
-    setWindowTitle(QString("Edit: %1").arg(m_module.moduleName));
+    const QString moduleIdHex = QString("%1")
+        .arg(m_module.moduleId, 2, 16, QChar('0'))
+        .toUpper();
+    setWindowTitle(QString("Edit: %1 (module_id: 0x%2)")
+                       .arg(m_module.moduleName, moduleIdHex));
     QVBoxLayout* lay = new QVBoxLayout(this);
     
     // 内容：表格（参数名|默认值|最小值|最大值|地址） + 操作（编辑|删除）

@@ -57,6 +57,7 @@ signals:
     // 模块专用信号
     void test_rw_signal(const QByteArray &regData);
     void awbc_read_done(const QByteArray &regData);
+    void moduleReadReply(quint8 moduleId, const QByteArray &payload);
     
     // 网络专用信号（只用于异步网络连接）
     void networkConnected();

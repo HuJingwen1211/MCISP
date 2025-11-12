@@ -16,6 +16,7 @@
 #include <QDebug>
 #include <QInputDialog>
 #include <QHeaderView>
+#include <cstring>
 XMLModuleTab::XMLModuleTab(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::XMLModuleTab)
@@ -57,6 +58,9 @@ XMLModuleTab::XMLModuleTab(QWidget *parent)
     // 连接 CommManager 网络专用信号（只用于异步网络连接）
     connect(m_commMgr, &CommManager::networkConnected, this, &XMLModuleTab::onNetworkConnected);
     connect(m_commMgr, &CommManager::networkDisconnected, this, &XMLModuleTab::onNetworkDisconnected);
+
+    // 模块读回包
+    connect(m_commMgr, &CommManager::moduleReadReply, this, &XMLModuleTab::onModuleReadReply);
 }
 
 XMLModuleTab::~XMLModuleTab()
@@ -212,12 +216,32 @@ void XMLModuleTab::exportConfig()
 
 void XMLModuleTab::allRead()
 {
-    // 全部读取
+    if (!m_commMgr->isOpen()) {
+        printLog("未连接，无法执行 All Read");
+        return;
+    }
+
+    for (const Module &module : m_xmlConfig.modules) {
+        QGroupBox *group = m_groupById.value(module.moduleId, nullptr);
+        if (group) {
+            readModule(group);
+        }
+    }
 }
 
 void XMLModuleTab::allWrite()
 {
-    // 全部写入
+    if (!m_commMgr->isOpen()) {
+        printLog("未连接，无法执行 All Write");
+        return;
+    }
+
+    for (const Module &module : m_xmlConfig.modules) {
+        QGroupBox *group = m_groupById.value(module.moduleId, nullptr);
+        if (group) {
+            writeModule(group);
+        }
+    }
 }
 
 // ============================================================================
@@ -238,7 +262,17 @@ bool XMLModuleTab::parseXML(const QByteArray &data)
             
             if (tag == "MODULE") {
                 curModule = Module{};
-                curModule.moduleName = reader.attributes().value("id").toString();
+                const auto attrs = reader.attributes();
+                curModule.moduleName = attrs.value("id").toString().trimmed();
+            
+                bool ok = false;
+                const QString idAttr = attrs.value("module_id").toString().trimmed();
+                curModule.moduleId = static_cast<quint8>(idAttr.toUInt(&ok, 0));
+                if (!ok) {
+                    printLog(QString("Module %1 missing valid module_id").arg(curModule.moduleName));
+                    return false;
+                }
+            
                 inModule = true;
             }
             else if (tag == "PARAM" && inModule) {
@@ -261,7 +295,22 @@ bool XMLModuleTab::parseXML(const QByteArray &data)
             inModule = false;
         }
     }
-    return !reader.hasError();
+    if (reader.hasError()) {
+        printLog(QString("XML parse error: %1").arg(reader.errorString()));
+        return false;
+    }
+
+    // 直接在这里填映射表
+    m_moduleNameMap.clear();
+    m_moduleIdMap.clear();
+
+    for (Module &module : m_xmlConfig.modules) {
+        if (module.moduleId == 0xFF) continue;
+        m_moduleNameMap.insert(module.moduleName, &module);
+        m_moduleIdMap.insert(module.moduleId, &module);
+    }
+
+    return true;
 }
 
 QByteArray XMLModuleTab::serializeXML() const
@@ -280,6 +329,7 @@ QByteArray XMLModuleTab::serializeXML() const
 
         writer.writeStartElement("MODULE");
         writer.writeAttribute("id", module.moduleName);
+        writer.writeAttribute("module_id", QString::asprintf("0x%02X", module.moduleId));
 
         for (const Param& param : module.params) {
             writer.writeEmptyElement("PARAM");
@@ -432,6 +482,8 @@ void XMLModuleTab::generateModuleGroup(const Module &module)
     QGroupBox* group = new QGroupBox(module.moduleName, ui->scrollAreaWidgetContents);
     group->setCheckable(true);
     group->setChecked(true);
+    group->setProperty("module_id", module.moduleId);
+    m_groupById.insert(module.moduleId, group);
 
     // 主布局
     QVBoxLayout* mainLayout = new QVBoxLayout(group);
@@ -460,7 +512,7 @@ void XMLModuleTab::generateModuleGroup(const Module &module)
 
     int row = 0;
     for (const Param& param : module.params) {
-        QLabel* label = new QLabel(param.paramName + ":", group);
+        QLabel* label = new QLabel(param.paramName + "      (0x" + QString::asprintf("%08X", param.address) + "):", group);
         QSpinBox* spinBox = new QSpinBox(group);
         spinBox->setRange(param.min, param.max);
         spinBox->setValue(param.defaultVal);
@@ -481,6 +533,7 @@ void XMLModuleTab::clearUI()
 {
     // tree
     ui->module_list->clear();
+    m_groupById.clear();
     // group
     QLayout* layout = ui->scrollAreaWidgetContents->layout();
     if (!layout) return;
@@ -500,14 +553,49 @@ void XMLModuleTab::clearUI()
 
 void XMLModuleTab::readModule(QGroupBox *group)
 {
-    
-    printLog(QString("%1: Read module").arg(group->title()));
-    
+    if (!m_commMgr->isOpen()) {
+        printLog(QString("未连接，无法读取 %1").arg(group->title()));
+        return;
+    }
+
+    const quint8 moduleId = static_cast<quint8>(group->property("module_id").toUInt());
+    const auto spinBoxes = group->findChildren<QSpinBox*>();
+
+    QByteArray payload;
+    payload.append(static_cast<char>(moduleId));
+    for (QSpinBox *spin : spinBoxes) {
+        const quint32 address = spin->property("address").toUInt();
+        payload.append(reinterpret_cast<const char*>(&address), sizeof(address));
+    }
+
+    m_commMgr->sendCmd(READ_REG_CMD,
+                       reinterpret_cast<const uint8_t*>(payload.constData()),
+                       static_cast<uint16_t>(payload.size()));
 }
 void XMLModuleTab::writeModule(QGroupBox *group)
 {
-    printLog(QString("%1: Write module").arg(group->title()));
+    if (!m_commMgr->isOpen()) {
+        printLog(QString("未连接，无法写入 %1").arg(group->title()));
+        return;
+    }
+
+    const quint8 moduleId = static_cast<quint8>(group->property("module_id").toUInt());
+    const auto spinBoxes = group->findChildren<QSpinBox*>();
     
+    // 构造 payload: [moduleId][addr1][val1][addr2][val2]...
+    QByteArray payload;
+    payload.append(static_cast<char>(moduleId));
+
+    for (QSpinBox *spin : spinBoxes) {
+        const quint32 address = spin->property("address").toUInt();
+        const quint32 value = static_cast<quint32>(spin->value());
+        payload.append(reinterpret_cast<const char*>(&address), sizeof(address));
+        payload.append(reinterpret_cast<const char*>(&value), sizeof(value));
+    }
+
+    m_commMgr->sendCmd(WRITE_REG_CMD, 
+                       reinterpret_cast<const uint8_t*>(payload.constData()), 
+                       static_cast<uint16_t>(payload.size()));
 }
 void XMLModuleTab::addNewModule()
 {
@@ -680,7 +768,6 @@ void XMLModuleTab::handleSerialConnect()
         m_commMgr->writeRaw(QByteArray("HELLO_FROM_APP\r\n"));
         
         m_connected = true;
-        printLog("串口连接成功");
         ui->link_btn->setText("Disconnect");
         ui->link_btn->setStyleSheet("background-color: #38815c;");
         ui->port_combx->setEnabled(false);
@@ -730,7 +817,6 @@ void XMLModuleTab::onNetworkConnected()
 {
     // 网络异步连接成功
     m_connected = true;
-    printLog("网络连接成功");
     
     ui->link_btn->setText("Disconnect");
     ui->link_btn->setStyleSheet("background-color: #38815c;");
@@ -744,7 +830,6 @@ void XMLModuleTab::onNetworkDisconnected()
 {
     // 网络意外断开（或主动断开）
     m_connected = false;
-    printLog("网络连接断开");
     
     ui->link_btn->setText("Connect");
     ui->link_btn->setStyleSheet("");
@@ -752,4 +837,21 @@ void XMLModuleTab::onNetworkDisconnected()
     ui->tcp_port_spinBox->setEnabled(true);
     ui->serial_radio->setEnabled(true);
     ui->network_radio->setEnabled(true);
+}
+
+void XMLModuleTab::onModuleReadReply(quint8 moduleId, const QByteArray &payload)
+{
+    QGroupBox *group = m_groupById.value(moduleId, nullptr);
+    if (!group) {
+        return;
+    }
+
+    const auto spinBoxes = group->findChildren<QSpinBox*>();
+    const char *ptr = payload.constData();
+    for (QSpinBox *spin : spinBoxes) {
+        quint32 value;
+        memcpy(&value, ptr, sizeof(value));
+        ptr += sizeof(value);
+        spin->setValue(static_cast<int>(value));
+    }
 }

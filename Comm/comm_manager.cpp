@@ -286,34 +286,12 @@ void CommManager::process_cmd_data(uint8_t cmd, const QByteArray &data) {
 }
 
 void CommManager::read_reg_process(const QByteArray &data) {
-    uint8_t module = data.constData()[0];
-    switch(module) {
-        case DPC_MODULE:
-            break;
-        case BLC_MODULE:
-            break;
-        case LSC_MODULE:
-            break;
-        case NR_RAW_MODULE:
-            break;
-        case AWBC_MODULE:
-            emit awbc_read_done(data);
-            break;
-        case GB_MODULE:
-            break;
-        case DMS_MODULE:
-            break;
-        case CCM_MODULE:
-            break;
-        case GAMMA_MODULE:
-            break;
-        case CSC_MODULE:
-            break;
-        case NR_YUV_MODULE:
-            break;
-        default:
-            break;
+    if (data.isEmpty()) {
+        return;
     }
+
+    const uint8_t moduleId = static_cast<uint8_t>(data.at(0));
+    emit moduleReadReply(moduleId, data.mid(1));
 }
 
 // ==================== 图像接收处理 ====================
